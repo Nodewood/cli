@@ -4,7 +4,7 @@ class Command {
    *
    * @return {String}
    */
-  helpShort() {
+  helpLine() {
     return '';
   }
 
@@ -13,7 +13,7 @@ class Command {
    *
    * @return {String}
    */
-  helpLong() {
+  helpDetailed() {
     return '';
   }
 

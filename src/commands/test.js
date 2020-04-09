@@ -6,7 +6,7 @@ class TestCommand extends Command {
    *
    * @return {String}
    */
-  helpShort() {
+  helpLine() {
     return '';
   }
 
@@ -15,7 +15,7 @@ class TestCommand extends Command {
    *
    * @return {String}
    */
-  helpLong() {
+  helpDetailed() {
     return '';
   }
 
