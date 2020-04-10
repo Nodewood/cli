@@ -7,7 +7,7 @@ class TestCommand extends Command {
    * @return {String}
    */
   helpLine() {
-    return '';
+    return 'A test command.';
   }
 
   /**
@@ -16,7 +16,7 @@ class TestCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    return '';
+    console.log('detailed help');
   }
 
   /**
@@ -25,7 +25,7 @@ class TestCommand extends Command {
    * @param {Array} args - Command arguments, as parsed by minimist.
    */
   execute(args) {
-
+    console.log('executing test command');
   }
 }
 

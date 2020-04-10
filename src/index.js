@@ -1,17 +1,12 @@
-const clear = require('clear');
 const chalk = require('chalk');
 const figlet = require('figlet');
 const { get } = require('lodash');
 const commands = require('./lib/commands');
 const { showHelp, showDetailedHelp } = require('./lib/help');
+const { version } = require('../package.json');
 
-// Parse inputs
-// Attempt to find command
-// If found, create new Command and run it
-// If not found, run new HelpCommand
-
-clear();
 console.log(chalk.yellow(figlet.textSync('Nodewood', { horizontalLayout: 'full' })));
+console.log(`Version ${version}\n`);
 
 const args = require('minimist')(process.argv.slice(2));
 const command = get(args._, 0, false);
@@ -22,11 +17,13 @@ if (isInvalidCommand(command, commands) || isInvalidHelpCommand(command, args, c
 }
 // Display detailed help
 else if (command === 'help') {
-  showDetailedHelp(command, commands);
+  const helpCommand = get(args._, 1, false);
+  showDetailedHelp(helpCommand, commands);
 }
 // Execute a command
 else {
-  console.log(`Execute command: ${command}`);
+  const instance = new commands[command]();
+  instance.execute(args);
 }
 
 /**
