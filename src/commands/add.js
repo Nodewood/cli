@@ -3,7 +3,7 @@ const pluralize = require('pluralize');
 const klawSync = require('klaw-sync');
 const { get, kebabCase, camelCase, snakeCase, upperFirst } = require('lodash');
 const { resolve, extname } = require('path');
-const { existsSync, copySync, readFileSync, writeFileSync } = require('fs-extra');
+const { emptyDirSync, existsSync, copySync, readFileSync, writeFileSync } = require('fs-extra');
 const { Command } = require('../lib/Command');
 
 const NODEWOOD_PREFIX = 'nodewood-';
@@ -44,6 +44,7 @@ class AddCommand extends Command {
     // expecting plural kebab-case
     // e.g. add feature api-tokens
     // --no-examples: create feature without any examples in feature folder
+    // --overwrite: overwrite feature folder with empty feature
     // add TYPE FEATURE NAME
   }
 
@@ -56,7 +57,10 @@ class AddCommand extends Command {
     const toAdd = get(args._, 1, false);
     if (toAdd === TYPE_FEATURE) {
       const name = get(args._, 2, false);
-      this.addFeature(name, get(args, 'examples', true));
+      const examples = get(args, 'examples', true);
+      const overwrite = get(args, 'overwrite', false);
+
+      this.addFeature(name, { examples, overwrite });
       return;
     }
 
@@ -110,8 +114,9 @@ class AddCommand extends Command {
    *
    * @param {String} name - The name of the feature to add.
    * @param {Boolean} examples - If we should add the examples to the feature.
+   * @param {Boolean} overwrite - If we should overwrite any existing feature.
    */
-  addFeature(name, examples) {
+  addFeature(name, { examples, overwrite }) {
     const names = this.getNames(name);
     const sourceDir = resolve(process.cwd(), 'wood/templates/feature');
     const targetDir = resolve(process.cwd(), `app/features/${names.kebabPluralName}`);
@@ -122,7 +127,12 @@ class AddCommand extends Command {
       return;
     }
 
-    if (existsSync(targetDir)) {
+    if (overwrite) {
+      emptyDirSync(targetDir);
+      console.log('Target directory being overwritten.');
+    }
+    // If not overwriting, ensure feature does not already exist
+    else if (existsSync(targetDir)) {
       console.log(chalk.red(`The folder for feature '${names.kebabPluralName}' already exists.`));
       console.log(`Please ensure the folder 'app/features/${names.kebabPluralName}' does not exist.`);
       return;
@@ -142,7 +152,8 @@ class AddCommand extends Command {
     });
 
     console.log('Feature created at:');
-    console.log(chalk.yellow(targetDir));
+    console.log(chalk.cyan(targetDir));
+    console.log(`\nEnsure you add '${chalk.cyan(names.kebabPluralName)}' to the '${chalk.cyan('features')}' array in '${chalk.cyan('app/config/app.js')}'.`);
   }
 }
 
