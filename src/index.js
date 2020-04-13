@@ -22,6 +22,8 @@ else if (command === 'help') {
 }
 // Execute a command
 else {
+  // TODO: Ensure in a Nodewood project
+
   const instance = new commands[command]();
   instance.execute(args);
 }

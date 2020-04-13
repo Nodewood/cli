@@ -1,5 +1,5 @@
-const { TestCommand } = require('../commands/test');
+const { AddCommand } = require('../commands/add');
 
 module.exports = {
-  test: TestCommand,
+  add: AddCommand,
 };
