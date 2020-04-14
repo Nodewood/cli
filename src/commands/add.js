@@ -10,6 +10,7 @@ const NODEWOOD_PREFIX = 'nodewood-';
 
 const TYPE_FEATURE = 'feature';
 const TYPE_CONTROLLER = 'controller';
+const TYPE_SERVICE = 'service';
 
 const TEMPLATE_KEYS = {
   '###_SINGULAR_NAME_###': 'singularName',
@@ -70,6 +71,9 @@ class AddCommand extends Command {
 
       if (toAdd === TYPE_CONTROLLER) {
         this.addController(feature, name, { overwrite });
+      }
+      if (toAdd === TYPE_SERVICE) {
+        this.addService(feature, name, { overwrite });
       }
       else {
         console.log(chalk.red(`Invalid type to add: '${toAdd}'`));
@@ -209,6 +213,35 @@ class AddCommand extends Command {
     console.log('Controller and tests created at:');
     console.log(chalk.cyan(controllerTarget));
     console.log(chalk.cyan(testTarget));
+  }
+
+  /**
+   * Add a service.
+   *
+   * @param {String} feature - The name of the feature to add the service to.
+   * @param {String} name - The name of the service to add.
+   * @param {Boolean} overwrite - If we should overwrite the service.
+   */
+  addService(feature, name, { overwrite }) {
+    const featureNames = this.getNames(feature);
+    const serviceNames = this.getNames(name);
+
+    const source = resolve(process.cwd(), 'wood/templates/service/Service.js');
+    const target = resolve(process.cwd(), `app/features/${featureNames.kebabPluralName}/api/services/${serviceNames.pascalName}Service.js`);
+
+    // Don't accidentally overwrite the service
+    if (! overwrite && existsSync(target)) {
+      console.log(chalk.red('The service you are trying to create already exists.'));
+      console.log(`Please ensure the file '${chalk.cyan(target)}' does not exist or set the --overwrite option.`);
+      return;
+    }
+
+    copySync(source, target);
+    const contents = readFileSync(target, 'utf-8');
+    writeFileSync(target, this.templateString(contents, serviceNames));
+
+    console.log('Service created at:');
+    console.log(chalk.cyan(target));
   }
 }
 
