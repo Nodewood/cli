@@ -1,7 +1,7 @@
 const chalk = require('chalk');
 const pluralize = require('pluralize');
 const klawSync = require('klaw-sync');
-const { get, kebabCase, camelCase, snakeCase, upperFirst } = require('lodash');
+const { get, kebabCase, camelCase, snakeCase, upperFirst, template } = require('lodash');
 const { resolve, extname } = require('path');
 const { emptyDirSync, existsSync, copySync, readFileSync, writeFileSync } = require('fs-extra');
 const { Command } = require('../lib/Command');
@@ -63,17 +63,17 @@ class AddCommand extends Command {
       const name = get(args._, 2, false);
       const examples = get(args, 'examples', true);
 
-      this.addFeature(name, { examples, overwrite });
+      this.addFeature(name, examples, overwrite);
     }
     else {
       const feature = get(args._, 2, false);
       const name = get(args._, 3, false);
 
       if (toAdd === TYPE_CONTROLLER) {
-        this.addController(feature, name, { overwrite });
+        this.addController(feature, name, overwrite);
       }
       if (toAdd === TYPE_SERVICE) {
-        this.addService(feature, name, { overwrite });
+        this.addService(feature, name, overwrite);
       }
       else {
         console.log(chalk.red(`Invalid type to add: '${toAdd}'`));
@@ -116,10 +116,10 @@ class AddCommand extends Command {
    *
    * @return {String}
    */
-  templateString(template, names) {
+  templateString(templateString, names) {
     return Object.entries(TEMPLATE_KEYS).reduce(
       (string, [key, value]) => string.replace(new RegExp(key, 'g'), names[value]),
-      template,
+      templateString,
     );
   }
 
@@ -130,7 +130,7 @@ class AddCommand extends Command {
    * @param {Boolean} examples - If we should add the examples to the feature.
    * @param {Boolean} overwrite - If we should overwrite any existing feature.
    */
-  addFeature(name, { examples, overwrite }) {
+  addFeature(name, examples, overwrite) {
     const names = this.getNames(name);
     const sourceDir = resolve(process.cwd(), 'wood/templates/feature');
     const targetDir = resolve(process.cwd(), `app/features/${names.kebabPluralName}`);
@@ -177,7 +177,7 @@ class AddCommand extends Command {
    * @param {String} name - The name of the controller to add.
    * @param {Boolean} overwrite - If we should overwrite the controller.
    */
-  addController(feature, name, { overwrite }) {
+  addController(feature, name, overwrite) {
     const featureNames = this.getNames(feature);
     const controllerNames = this.getNames(name);
 
@@ -216,32 +216,56 @@ class AddCommand extends Command {
   }
 
   /**
-   * Add a service.
+   * Add a single template file.  Reduces common code.
    *
-   * @param {String} feature - The name of the feature to add the service to.
-   * @param {String} name - The name of the service to add.
-   * @param {Boolean} overwrite - If we should overwrite the service.
+   * @param {String} sourceFile - The source of the template file.
+   * @param {String} targetTemplate - A template describing the location of the target file.
+   * @param {String} type - The type of the file being added.
+   * @param {String} feature - The name of the feature to add the file to.
+   * @param {String} name - The name of the file to add.
+   * @param {Boolean} overwrite - If we should overwrite the file.
    */
-  addService(feature, name, { overwrite }) {
+  addTemplateFile(sourceFile, targetTemplate, type, feature, name, overwrite) {
     const featureNames = this.getNames(feature);
-    const serviceNames = this.getNames(name);
+    const fileNames = this.getNames(name);
 
-    const source = resolve(process.cwd(), 'wood/templates/service/Service.js');
-    const target = resolve(process.cwd(), `app/features/${featureNames.kebabPluralName}/api/services/${serviceNames.pascalName}Service.js`);
+    const source = resolve(process.cwd(), sourceFile);
+    const target = resolve(process.cwd(), template(targetTemplate)({
+      featureName: featureNames.kebabPluralName,
+      fileName: fileNames.pascalName,
+    }));
 
-    // Don't accidentally overwrite the service
+    // Don't accidentally overwrite the file
     if (! overwrite && existsSync(target)) {
-      console.log(chalk.red('The service you are trying to create already exists.'));
+      console.log(chalk.red(`The ${type} you are trying to create already exists.`));
       console.log(`Please ensure the file '${chalk.cyan(target)}' does not exist or set the --overwrite option.`);
       return;
     }
 
     copySync(source, target);
     const contents = readFileSync(target, 'utf-8');
-    writeFileSync(target, this.templateString(contents, serviceNames));
+    writeFileSync(target, this.templateString(contents, fileNames));
 
-    console.log('Service created at:');
+    console.log(`${upperFirst(type)} created at:`);
     console.log(chalk.cyan(target));
+  }
+
+  /**
+   * Add a service.
+   *
+   * @param {String} feature - The name of the feature to add the service to.
+   * @param {String} name - The name of the service to add.
+   * @param {Boolean} overwrite - If we should overwrite the service.
+   */
+  addService(feature, name, overwrite) {
+    this.addTemplateFile(
+      'wood/templates/service/Service.js',
+      'app/features/<%= featureName %>/api/services/<%= fileName %>Service.js',
+      'service',
+      feature,
+      name,
+      overwrite,
+    );
   }
 }
 
