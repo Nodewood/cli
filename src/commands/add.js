@@ -9,6 +9,7 @@ const { Command } = require('../lib/Command');
 const NODEWOOD_PREFIX = 'nodewood-';
 
 const TYPE_FEATURE = 'feature';
+const TYPE_CONTROLLER = 'controller';
 
 const TEMPLATE_KEYS = {
   '###_SINGULAR_NAME_###': 'singularName',
@@ -55,16 +56,25 @@ class AddCommand extends Command {
    */
   execute(args) {
     const toAdd = get(args._, 1, false);
+    const overwrite = get(args, 'overwrite', false);
+
     if (toAdd === TYPE_FEATURE) {
       const name = get(args._, 2, false);
       const examples = get(args, 'examples', true);
-      const overwrite = get(args, 'overwrite', false);
 
       this.addFeature(name, { examples, overwrite });
-      return;
     }
+    else {
+      const feature = get(args._, 2, false);
+      const name = get(args._, 3, false);
 
-    console.log(chalk.red(`Invalid type to add: '${toAdd}'`));
+      if (toAdd === TYPE_CONTROLLER) {
+        this.addController(feature, name, { overwrite });
+      }
+      else {
+        console.log(chalk.red(`Invalid type to add: '${toAdd}'`));
+      }
+    }
   }
 
   /**
@@ -122,7 +132,7 @@ class AddCommand extends Command {
     const targetDir = resolve(process.cwd(), `app/features/${names.kebabPluralName}`);
 
     if (name.substr(0, 9) === NODEWOOD_PREFIX) {
-      console.log(chalk.red(`Feature cannot start with '${NODEWOOD_PREFIX}'.`));
+      console.log(chalk.red(`Feature cannot start with '${chalk.cyan(NODEWOOD_PREFIX)}'.`));
       console.log('This keeps future Nodewood features from interfering with yours.');
       return;
     }
@@ -133,8 +143,8 @@ class AddCommand extends Command {
     }
     // If not overwriting, ensure feature does not already exist
     else if (existsSync(targetDir)) {
-      console.log(chalk.red(`The folder for feature '${names.kebabPluralName}' already exists.`));
-      console.log(`Please ensure the folder 'app/features/${names.kebabPluralName}' does not exist.`);
+      console.log(chalk.red(`The folder for feature '${chalk.cyan(names.kebabPluralName)}' already exists.`));
+      console.log(`Please ensure the folder 'app/features/${chalk.cyan(names.kebabPluralName)}' does not exist.`);
       return;
     }
 
@@ -154,6 +164,51 @@ class AddCommand extends Command {
     console.log('Feature created at:');
     console.log(chalk.cyan(targetDir));
     console.log(`\nEnsure you add '${chalk.cyan(names.kebabPluralName)}' to the '${chalk.cyan('features')}' array in '${chalk.cyan('app/config/app.js')}'.`);
+  }
+
+  /**
+   * Add a controller.
+   *
+   * @param {String} feature - The name of the feature to add the controller to.
+   * @param {String} name - The name of the controller to add.
+   * @param {Boolean} overwrite - If we should overwrite the controller.
+   */
+  addController(feature, name, { overwrite }) {
+    const featureNames = this.getNames(feature);
+    const controllerNames = this.getNames(name);
+
+    const controllerSource = resolve(process.cwd(), 'wood/templates/controller/Controller.js');
+    const controllerTarget = resolve(process.cwd(), `app/features/${featureNames.kebabPluralName}/api/controllers/${controllerNames.pascalName}Controller.js`);
+
+    const testSource = resolve(process.cwd(), 'wood/templates/controller/Controller.test.js');
+    const testTarget = resolve(process.cwd(), `app/features/${featureNames.kebabPluralName}/api/controllers/__tests__/${controllerNames.pascalName}Controller.test.js`);
+
+    // Don't accidentally overwrite these files
+    if (! overwrite) {
+      if (existsSync(controllerTarget)) {
+        console.log(chalk.red('The controller you are trying to create already exists.'));
+        console.log(`Please ensure the file '${chalk.cyan(controllerTarget)}' does not exist or set the --overwrite option.`);
+        return;
+      }
+
+      if (existsSync(testTarget)) {
+        console.log(chalk.red('The controller test you are trying to create already exists.'));
+        console.log(`Please ensure the file '${chalk.cyan(testTarget)}' does not exist or set the --overwrite option.`);
+        return;
+      }
+    }
+
+    copySync(controllerSource, controllerTarget);
+    const controllerContents = readFileSync(controllerTarget, 'utf-8');
+    writeFileSync(controllerTarget, this.templateString(controllerContents, controllerNames));
+
+    copySync(testSource, testTarget);
+    const testContents = readFileSync(testTarget, 'utf-8');
+    writeFileSync(testTarget, this.templateString(testContents, controllerNames));
+
+    console.log('Controller and tests created at:');
+    console.log(chalk.cyan(controllerTarget));
+    console.log(chalk.cyan(testTarget));
   }
 }
 
