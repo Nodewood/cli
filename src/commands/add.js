@@ -235,6 +235,17 @@ class AddCommand extends Command {
 
     console.log('Feature created at:');
     console.log(chalk.cyan(targetDir));
+
+    if (examples) {
+      this.addController(name, name, overwrite);
+      this.addService(name, name, overwrite);
+      this.addPage(name, name, overwrite, true);
+      this.addDialog(name, name, overwrite);
+      this.addStore(name, name, overwrite, true);
+      this.addFormValidator(name, name, overwrite);
+      this.addModel(name, name, overwrite);
+    }
+
     console.log(`\nEnsure you add '${chalk.cyan(names.feature.kebabPluralName)}' to the '${chalk.cyan('features')}' array in '${chalk.cyan('app/config/app.js')}'.`);
   }
 
@@ -299,6 +310,7 @@ class AddCommand extends Command {
     const target = resolve(process.cwd(), template(targetTemplate)({
       featureName: names.feature.kebabPluralName,
       fileName: names.file.pascalName,
+      fileNamePlural: names.file.pascalPluralName,
     }));
 
     // Don't accidentally overwrite the file
@@ -343,7 +355,7 @@ class AddCommand extends Command {
   addService(feature, name, overwrite) {
     this.addTemplateFile(
       'wood/templates/service/Service.js',
-      'app/features/<%= featureName %>/api/services/<%= fileName %>Service.js',
+      'app/features/<%= featureName %>/api/services/<%= fileNamePlural %>Service.js',
       'service',
       feature,
       name,
