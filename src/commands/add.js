@@ -74,14 +74,29 @@ class AddCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    console.log('Add detailed help');
-    // add feature NAME
-    // expecting plural kebab-case
-    // e.g. add feature api-tokens
-    // --no-examples: create feature without any examples in feature folder
-    // --overwrite: overwrite feature folder with empty feature
-    // --no-route: do not create route in ui/init.js
-    // add TYPE FEATURE NAME
+    console.log('Add a file or feature from a template.');
+
+    console.log(chalk.yellow('\nUsage:'));
+    console.log('  nodewood add TYPE FEATURE [NAME] [OPTIONS]');
+
+    console.log(chalk.yellow('\nParameters:'));
+    console.log(`  ${chalk.cyan('TYPE')}     # What to add to your app`);
+    console.log(`           # Allowed: ${chalk.cyan('feature')}, ${chalk.cyan('controller')}, ${chalk.cyan('service')}, ${chalk.cyan('page')}, ${chalk.cyan('dialog')}, ${chalk.cyan('store')}, ${chalk.cyan('form')}, ${chalk.cyan('model')}`);
+    console.log(`  ${chalk.cyan('FEATURE')}  # The name of the feature to add, or the feature to add file to`);
+    console.log(`  ${chalk.cyan('NAME')}     # The name of the file to add (optional)`);
+    console.log(`  ${chalk.cyan('OPTIONS')}  # Options (see below)`);
+
+    console.log(`\nNote: ${chalk.cyan('FEATURE')} and ${chalk.cyan('NAME')} must be kebab-case.`);
+
+    console.log(chalk.yellow('\nOptions:'));
+    console.log(`  ${chalk.cyan('--overwrite')}    # Overwrite existing files`);
+    console.log(`  ${chalk.cyan('--no-examples')}  # Do not add controller, service, page, etc examples to new feature`);
+    console.log(`  ${chalk.cyan('--no-init')}      # Do not modify init.js when adding page or store`);
+
+    console.log(chalk.yellow('\nExamples:'));
+    console.log('  nodewood add feature api-tokens --no-examples');
+    console.log('  nodewood add dialog api-tokens edit-token --overwrite');
+    console.log('  nodewood add page api-tokens list-tokens --no-init');
   }
 
   /**
