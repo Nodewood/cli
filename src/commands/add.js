@@ -32,6 +32,7 @@ const TYPE_PAGE = 'page';
 const TYPE_DIALOG = 'dialog';
 const TYPE_STORE = 'store';
 const TYPE_FORM = 'form';
+const TYPE_MODEL = 'model';
 
 const TEMPLATE_KEYS = {
   '###_SINGULAR_NAME_###': 'file.singularName',
@@ -119,6 +120,9 @@ class AddCommand extends Command {
       }
       else if (toAdd === TYPE_FORM) {
         this.addFormValidator(feature, name, overwrite);
+      }
+      else if (toAdd === TYPE_MODEL) {
+        this.addModel(feature, name, overwrite);
       }
       else {
         console.log(chalk.red(`Invalid type to add: '${toAdd}'`));
@@ -487,6 +491,24 @@ class AddCommand extends Command {
       'wood/templates/form-validator/FormValidator.js',
       'app/features/<%= featureName %>/<%= fileName %>FormValidator.js',
       'form validator',
+      feature,
+      name,
+      overwrite,
+    );
+  }
+
+  /**
+   * Add a model.
+   *
+   * @param {String} feature - The name of the feature to add the model to.
+   * @param {String} name - The name of the model to add.
+   * @param {Boolean} overwrite - If we should overwrite the model.
+   */
+  addModel(feature, name, overwrite) {
+    this.addTemplateFile(
+      'wood/templates/model/Model.js',
+      'app/features/<%= featureName %>/<%= fileName %>Model.js',
+      'model',
       feature,
       name,
       overwrite,
