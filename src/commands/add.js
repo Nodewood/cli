@@ -31,6 +31,7 @@ const TYPE_SERVICE = 'service';
 const TYPE_PAGE = 'page';
 const TYPE_DIALOG = 'dialog';
 const TYPE_STORE = 'store';
+const TYPE_FORM = 'form';
 
 const TEMPLATE_KEYS = {
   '###_SINGULAR_NAME_###': 'file.singularName',
@@ -115,6 +116,9 @@ class AddCommand extends Command {
       }
       else if (toAdd === TYPE_STORE) {
         this.addStore(feature, name, overwrite, get(args, 'init', true));
+      }
+      else if (toAdd === TYPE_FORM) {
+        this.addFormValidator(feature, name, overwrite);
       }
       else {
         console.log(chalk.red(`Invalid type to add: '${toAdd}'`));
@@ -469,6 +473,24 @@ class AddCommand extends Command {
     writeFileSync(target, initFile.replace(STORE_LINE, `${storeFragment}\n${STORE_LINE}`));
 
     return true;
+  }
+
+  /**
+   * Add a form validator.
+   *
+   * @param {String} feature - The name of the feature to add the form validator to.
+   * @param {String} name - The name of the form validator to add.
+   * @param {Boolean} overwrite - If we should overwrite the form validator.
+   */
+  addFormValidator(feature, name, overwrite) {
+    this.addTemplateFile(
+      'wood/templates/form-validator/FormValidator.js',
+      'app/features/<%= featureName %>/<%= fileName %>FormValidator.js',
+      'form validator',
+      feature,
+      name,
+      overwrite,
+    );
   }
 }
 
