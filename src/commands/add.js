@@ -29,6 +29,7 @@ const TYPE_FEATURE = 'feature';
 const TYPE_CONTROLLER = 'controller';
 const TYPE_SERVICE = 'service';
 const TYPE_PAGE = 'page';
+const TYPE_DIALOG = 'dialog';
 
 const TEMPLATE_KEYS = {
   '###_SINGULAR_NAME_###': 'file.singularName',
@@ -107,6 +108,9 @@ class AddCommand extends Command {
       }
       else if (toAdd === TYPE_PAGE) {
         this.addPage(feature, name, overwrite, get(args, 'route', true));
+      }
+      else if (toAdd === TYPE_DIALOG) {
+        this.addDialog(feature, name, overwrite);
       }
       else {
         console.log(chalk.red(`Invalid type to add: '${toAdd}'`));
@@ -388,6 +392,24 @@ class AddCommand extends Command {
       );
       console.log(chalk.red('Page removed.'));
     }
+  }
+
+  /**
+   * Add a dialog.
+   *
+   * @param {String} feature - The name of the feature to add the dialog to.
+   * @param {String} name - The name of the dialog to add.
+   * @param {Boolean} overwrite - If we should overwrite the dialog.
+   */
+  addDialog(feature, name, overwrite) {
+    this.addTemplateFile(
+      'wood/templates/dialog/Dialog.vue',
+      'app/features/<%= featureName %>/ui/dialogs/<%= fileName %>Dialog.vue',
+      'dialog',
+      feature,
+      name,
+      overwrite,
+    );
   }
 }
 
