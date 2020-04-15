@@ -23,13 +23,14 @@ const { Command } = require('../lib/Command');
 const NODEWOOD_PREFIX = 'nodewood-';
 
 const ROUTE_LINE = '      // DO NOT REMOVE: Generated routes will be added above this line';
-const STORE_LINE = '      // DO NOT REMOVE: Generated stores will be added above this line';
+const STORE_LINE = '    // DO NOT REMOVE: Generated stores will be added above this line';
 
 const TYPE_FEATURE = 'feature';
 const TYPE_CONTROLLER = 'controller';
 const TYPE_SERVICE = 'service';
 const TYPE_PAGE = 'page';
 const TYPE_DIALOG = 'dialog';
+const TYPE_STORE = 'store';
 
 const TEMPLATE_KEYS = {
   '###_SINGULAR_NAME_###': 'file.singularName',
@@ -107,10 +108,13 @@ class AddCommand extends Command {
         this.addService(feature, name, overwrite);
       }
       else if (toAdd === TYPE_PAGE) {
-        this.addPage(feature, name, overwrite, get(args, 'route', true));
+        this.addPage(feature, name, overwrite, get(args, 'init', true));
       }
       else if (toAdd === TYPE_DIALOG) {
         this.addDialog(feature, name, overwrite);
+      }
+      else if (toAdd === TYPE_STORE) {
+        this.addStore(feature, name, overwrite, get(args, 'init', true));
       }
       else {
         console.log(chalk.red(`Invalid type to add: '${toAdd}'`));
@@ -322,33 +326,6 @@ class AddCommand extends Command {
   }
 
   /**
-   * Add the route for a page to a feature's init.js.
-   *
-   * @param {String} feature - The name of the feature to add the route to.
-   * @param {String} name - The name of the page to add the route for.
-   */
-  addRoute(feature, name) {
-    const names = this.getNames(feature, name);
-
-    const source = resolve(process.cwd(), 'wood/templates/fragments/route.js');
-    const target = resolve(process.cwd(), `app/features/${names.feature.kebabPluralName}/ui/init.js`);
-
-    const routeFragment = this.templateString(readFileSync(source, 'utf-8'), names);
-    const initFile = readFileSync(target, 'utf-8');
-
-    // Don't add route if it already exists
-    if (initFile.includes(`path: '/${names.file.kebabName}'`)) {
-      console.log(chalk.red(`Path ${chalk.cyan(`/${names.file.kebabName}`)} already exists in routes in ${chalk.cyan(`app/features/${names.feature.kebabPluralName}/ui/init.js`)}.`));
-      console.log(chalk.red('Please remove this route and try your command again.'));
-      return false;
-    }
-
-    writeFileSync(target, initFile.replace(ROUTE_LINE, `${routeFragment}\n${ROUTE_LINE}`));
-
-    return true;
-  }
-
-  /**
    * Add a service.
    *
    * @param {String} feature - The name of the feature to add the service to.
@@ -372,9 +349,9 @@ class AddCommand extends Command {
    * @param {String} feature - The name of the feature to add the page to.
    * @param {String} name - The name of the page to add.
    * @param {Boolean} overwrite - If we should overwrite the page.
-   * @param {Boolean} route - If we should create the route as well.
+   * @param {Boolean} init - If we should create the route in the init.js as well.
    */
-  addPage(feature, name, overwrite, route) {
+  addPage(feature, name, overwrite, init) {
     this.addTemplateFile(
       'wood/templates/page/Page.vue',
       'app/features/<%= featureName %>/ui/pages/<%= fileName %>Page.vue',
@@ -384,7 +361,7 @@ class AddCommand extends Command {
       overwrite,
     );
 
-    if (route && ! this.addRoute(feature, name)) {
+    if (init && ! this.addRouteToInit(feature, name)) {
       this.deleteFile(
         feature,
         name,
@@ -392,6 +369,33 @@ class AddCommand extends Command {
       );
       console.log(chalk.red('Page removed.'));
     }
+  }
+
+  /**
+   * Add the route for a page to a feature's init.js.
+   *
+   * @param {String} feature - The name of the feature to add the route to.
+   * @param {String} name - The name of the page to add the route for.
+   */
+  addRouteToInit(feature, name) {
+    const names = this.getNames(feature, name);
+
+    const source = resolve(process.cwd(), 'wood/templates/fragments/route.js');
+    const target = resolve(process.cwd(), `app/features/${names.feature.kebabPluralName}/ui/init.js`);
+
+    const routeFragment = this.templateString(readFileSync(source, 'utf-8'), names);
+    const initFile = readFileSync(target, 'utf-8');
+
+    // Don't add route if it already exists
+    if (initFile.includes(`path: '/${names.file.kebabName}'`)) {
+      console.log(chalk.red(`Path ${chalk.cyan(`/${names.file.kebabName}`)} already exists in routes in ${chalk.cyan(`app/features/${names.feature.kebabPluralName}/ui/init.js`)}.`));
+      console.log(chalk.red('Please remove this route and try your command again.'));
+      return false;
+    }
+
+    writeFileSync(target, initFile.replace(ROUTE_LINE, `${routeFragment}\n${ROUTE_LINE}`));
+
+    return true;
   }
 
   /**
@@ -410,6 +414,61 @@ class AddCommand extends Command {
       name,
       overwrite,
     );
+  }
+
+  /**
+   * Add a store.
+   *
+   * @param {String} feature - The name of the feature to add the store to.
+   * @param {String} name - The name of the store to add.
+   * @param {Boolean} overwrite - If we should overwrite the store.
+   * @param {Boolean} init - If we should create the store in the init.js as well.
+   */
+  addStore(feature, name, overwrite, init) {
+    this.addTemplateFile(
+      'wood/templates/store/Store.js',
+      'app/features/<%= featureName %>/ui/<%= fileName %>Store.js',
+      'store',
+      feature,
+      name,
+      overwrite,
+    );
+
+    if (init && ! this.addStoreToInit(feature, name)) {
+      this.deleteFile(
+        feature,
+        name,
+        'app/features/<%= featureName %>/ui/<%= fileName %>Store.js',
+      );
+      console.log(chalk.red('Store removed.'));
+    }
+  }
+
+  /**
+   * Add a store to a feature's init.js.
+   *
+   * @param {String} feature - The name of the feature to add the store to.
+   * @param {String} name - The name of the store to add to the init.js.
+   */
+  addStoreToInit(feature, name) {
+    const names = this.getNames(feature, name);
+
+    const source = resolve(process.cwd(), 'wood/templates/fragments/store.js');
+    const target = resolve(process.cwd(), `app/features/${names.feature.kebabPluralName}/ui/init.js`);
+
+    const storeFragment = this.templateString(readFileSync(source, 'utf-8'), names);
+    const initFile = readFileSync(target, 'utf-8');
+
+    // Don't add route if it already exists
+    if (initFile.includes(`'#features/${names.feature.kebabName}/ui/${names.file.pascalPluralName}Store'`)) {
+      console.log(chalk.red(`Store ${chalk.cyan(`${names.file.pascalPluralName}Store`)} already exists in ${chalk.cyan(`app/features/${names.feature.kebabPluralName}/ui/init.js`)}.`));
+      console.log(chalk.red('Please remove this store and try your command again.'));
+      return false;
+    }
+
+    writeFileSync(target, initFile.replace(STORE_LINE, `${storeFragment}\n${STORE_LINE}`));
+
+    return true;
   }
 }
 
