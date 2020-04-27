@@ -275,10 +275,10 @@ class AddCommand extends Command {
     const names = this.getNames(feature, name);
 
     const controllerSource = resolve(process.cwd(), 'wood/templates/controller/Controller.js');
-    const controllerTarget = resolve(process.cwd(), `app/features/${names.feature.kebabPluralName}/api/controllers/${names.file.pascalName}Controller.js`);
+    const controllerTarget = resolve(process.cwd(), `app/features/${names.feature.kebabPluralName}/api/controllers/${names.file.pascalPluralName}Controller.js`);
 
     const testSource = resolve(process.cwd(), 'wood/templates/controller/Controller.test.js');
-    const testTarget = resolve(process.cwd(), `app/features/${names.feature.kebabPluralName}/api/controllers/__tests__/${names.file.pascalName}Controller.test.js`);
+    const testTarget = resolve(process.cwd(), `app/features/${names.feature.kebabPluralName}/api/controllers/__tests__/${names.file.pascalPluralName}Controller.test.js`);
 
     // Don't accidentally overwrite these files
     if (! overwrite) {
