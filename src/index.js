@@ -5,6 +5,8 @@ const commands = require('./lib/commands');
 const { showHelp, showDetailedHelp } = require('./lib/help');
 const { version } = require('../package.json');
 
+require('dotenv').config();
+
 console.log(chalk.yellow(figlet.textSync('Nodewood', { horizontalLayout: 'full' })));
 console.log(`Version ${version}\n`);
 
