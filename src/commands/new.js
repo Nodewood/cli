@@ -1,5 +1,5 @@
 const chalk = require('chalk');
-const request = require('superagent');
+const superagent = require('superagent');
 const { get } = require('lodash');
 const { resolve } = require('path');
 const { prompt } = require('inquirer');
@@ -61,14 +61,19 @@ class NewCommand extends Command {
 
     const { apiKey, secretKey } = await this.getApiKeys();
 
-    await this.writeTemplate(path, apiKey, secretKey);
-    await this.writeWood(path, apiKey, secretKey);
+    try {
+      await this.writeTemplate(path, apiKey, secretKey);
+      await this.writeWood(path, apiKey, secretKey);
 
-    writeJsonSync(
-      resolve(path, '.nodewood.js'),
-      { apiKey, secretKey },
-      { spaces: 2 },
-    );
+      writeJsonSync(
+        resolve(path, '.nodewood.js'),
+        { apiKey, secretKey },
+        { spaces: 2 },
+      );
+    }
+    catch (error) {
+      console.log(chalk.red(error.message));
+    }
   }
 
   /**
@@ -134,14 +139,26 @@ class NewCommand extends Command {
    * @param {String} secretKey - The Secret key to generate an HMAC hash with.
    */
   async writeTemplate(path, apiKey, secretKey) {
-    const writeStream = createWriteStream(`${path}/template.zip`);
-    await request
-      .get(`${URL_BASE}${URL_SUFFIX_TEMPLATE}`)
-      .set('api-key', apiKey)
-      .set('hmac-hash', hmac({ apiKey }, secretKey))
-      .pipe(writeStream);
+    try {
+      const writeStream = createWriteStream(`${path}/template.zip`);
+      const request = await superagent
+        .get(`${URL_BASE}${URL_SUFFIX_TEMPLATE}`)
+        .set('api-key', apiKey)
+        .set('hmac-hash', hmac({ apiKey }, secretKey));
 
-    console.log('write template');
+      request.on('response', (response) => {
+        if (response.status !== 200) {
+          request.abort();
+        }
+      });
+
+      request.pipe(writeStream);
+
+      console.log('write template');
+    }
+    catch (error) {
+      console.log(error);
+    }
   }
 
   /**
