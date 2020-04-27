@@ -1,5 +1,6 @@
 const chalk = require('chalk');
 const superagent = require('superagent');
+const moment = require('moment');
 const { get } = require('lodash');
 const { resolve } = require('path');
 const { prompt } = require('inquirer');
@@ -140,11 +141,12 @@ class NewCommand extends Command {
    */
   async writeTemplate(path, apiKey, secretKey) {
     try {
-      const writeStream = createWriteStream(`${path}/template.zip`);
+      const ts = moment().format();
       const request = await superagent
         .get(`${URL_BASE}${URL_SUFFIX_TEMPLATE}`)
         .set('api-key', apiKey)
-        .set('hmac-hash', hmac({ apiKey }, secretKey));
+        .set('ts', ts)
+        .set('hmac-hash', hmac({ apiKey }, ts, secretKey));
 
       request.on('response', (response) => {
         if (response.status !== 200) {
@@ -152,7 +154,7 @@ class NewCommand extends Command {
         }
       });
 
-      request.pipe(writeStream);
+      request.pipe(createWriteStream(`${path}/template.zip`));
 
       console.log('write template');
     }
