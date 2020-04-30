@@ -389,7 +389,7 @@ class AddCommand extends Command {
   addPage(feature, name, overwrite, init) {
     this.addTemplateFile(
       'wood/templates/page/Page.vue',
-      'app/features/<%= featureName %>/ui/pages/<%= fileName %>Page.vue',
+      'app/features/<%= featureName %>/ui/pages/<%= fileNamePlural %>Page.vue',
       'page',
       feature,
       name,
@@ -400,7 +400,7 @@ class AddCommand extends Command {
       this.deleteFile(
         feature,
         name,
-        'app/features/<%= featureName %>/ui/pages/<%= fileName %>Page.vue',
+        'app/features/<%= featureName %>/ui/pages/<%= fileNamePlural %>Page.vue',
       );
       console.log(chalk.red('Page removed.'));
     }
