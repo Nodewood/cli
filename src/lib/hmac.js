@@ -6,6 +6,7 @@ const Base64 = require('crypto-js/enc-base64');
  * Create an HMAC hash for a JSON object.
  *
  * @param {Object} obj - The object to create a hash for.
+ * @param {String} ts - The timestamp to include in the object.
  * @param {String} privateKey - The private key to hash with.
  *
  * @return {String}
