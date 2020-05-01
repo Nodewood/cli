@@ -2,7 +2,7 @@ const chalk = require('chalk');
 const superagent = require('superagent');
 const moment = require('moment');
 const { get } = require('lodash');
-const { resolve } = require('path');
+const { resolve: pathResolve } = require('path');
 const { prompt } = require('inquirer');
 const {
   readdirSync,
@@ -51,7 +51,7 @@ class NewCommand extends Command {
    */
   async execute(args) {
     const overwrite = get(args, 'overwrite', false);
-    const path = resolve(process.cwd(), get(args._, 1, false));
+    const path = pathResolve(process.cwd(), get(args._, 1, false));
 
     if (! overwrite && ! this.isEmptyDirectory(path)) {
       console.log(chalk.red(`Directory '${path}' must be empty.`));
@@ -67,7 +67,7 @@ class NewCommand extends Command {
       await this.writeWood(path, apiKey, secretKey);
 
       writeJsonSync(
-        resolve(path, '.nodewood.js'),
+        pathResolve(path, '.nodewood.js'),
         { apiKey, secretKey },
         { spaces: 2 },
       );
@@ -154,27 +154,35 @@ class NewCommand extends Command {
    * @param {String} secretKey - The Secret key to generate an HMAC hash with.
    */
   async writeTemplate(path, apiKey, secretKey) {
-    console.log(`${URL_BASE}${URL_SUFFIX_TEMPLATE}`);
-
     const ts = moment().format();
-    const request = superagent
-      .get(`${URL_BASE}${URL_SUFFIX_TEMPLATE}`)
-      .set('api-key', apiKey)
-      .set('ts', ts)
-      .set('hmac-hash', hmac({ apiKey }, ts, secretKey));
 
-    // If a custom domain has been set, no point in strictly checking SSL certs
-    if (process.env.NODEWOOD_DOMAIN) {
-      request.disableTLSCerts();
-    }
+    await new Promise((resolve, reject) => {
+      const request = superagent
+        .get(`${URL_BASE}${URL_SUFFIX_TEMPLATE}`)
+        .set('api-key', apiKey)
+        .set('ts', ts)
+        .set('hmac-hash', hmac({ apiKey }, ts, secretKey));
 
-    request.on('response', (response) => {
-      if (response.status !== 200) {
-        request.abort();
+      // If a custom domain has been set, no point in strictly checking SSL certs
+      if (process.env.NODEWOOD_DOMAIN) {
+        request.disableTLSCerts();
       }
-    });
 
-    await request.pipe(createWriteStream(`${path}/template.zip`));
+      request.on('error', reject);
+
+      request.on('response', (response) => {
+        if (response.status === 200) {
+          const writer = createWriteStream(`${path}/template.zip`);
+          writer.write(response.body);
+          resolve();
+        }
+        else {
+          request.abort();
+        }
+      });
+
+      request.end();
+    });
 
     console.log('unzip template');
   }
