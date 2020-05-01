@@ -1,11 +1,11 @@
+require('dotenv').config();
+
 const chalk = require('chalk');
 const figlet = require('figlet');
 const { get } = require('lodash');
 const commands = require('./lib/commands');
 const { showHelp, showDetailedHelp } = require('./lib/help');
 const { version } = require('../package.json');
-
-require('dotenv').config();
 
 console.log(chalk.yellow(figlet.textSync('Nodewood', { horizontalLayout: 'full' })));
 console.log(`Version ${version}\n`);

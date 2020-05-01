@@ -15,9 +15,9 @@ const {
 const { Command } = require('../lib/Command');
 const { hmac } = require('../lib/hmac');
 
-const URL_BASE = `https://${process.env.NODEWOOD_DOMAIN || 'nodewood.com'}/app/projects`;
-const URL_SUFFIX_TEMPLATE = '/template';
-const URL_SUFFIX_WOOD = '/wood';
+const URL_BASE = `https://${process.env.NODEWOOD_DOMAIN || 'nodewood.com'}/api/public`;
+const URL_SUFFIX_TEMPLATE = '/templates/latest';
+const URL_SUFFIX_WOOD = '/wood/latest';
 
 class NewCommand extends Command {
   /**
@@ -73,7 +73,16 @@ class NewCommand extends Command {
       );
     }
     catch (error) {
-      console.log(chalk.red(error.message));
+      if (get(error, 'response.body.errors')) {
+        const errorMessage = error.response.body.errors
+          .map((errorEntry) => errorEntry.title)
+          .join('. ');
+
+        console.log(chalk.red(`Error: ${errorMessage}`));
+      }
+      else {
+        console.log(chalk.red(error.message));
+      }
     }
   }
 
@@ -129,7 +138,12 @@ class NewCommand extends Command {
       },
     ];
 
-    return prompt(questions);
+    const answers = await prompt(questions);
+
+    return {
+      apiKey: answers.apiKey.trim(),
+      secretKey: answers.secretKey.trim(),
+    };
   }
 
   /**
@@ -140,27 +154,29 @@ class NewCommand extends Command {
    * @param {String} secretKey - The Secret key to generate an HMAC hash with.
    */
   async writeTemplate(path, apiKey, secretKey) {
-    try {
-      const ts = moment().format();
-      const request = await superagent
-        .get(`${URL_BASE}${URL_SUFFIX_TEMPLATE}`)
-        .set('api-key', apiKey)
-        .set('ts', ts)
-        .set('hmac-hash', hmac({ apiKey }, ts, secretKey));
+    console.log(`${URL_BASE}${URL_SUFFIX_TEMPLATE}`);
 
-      request.on('response', (response) => {
-        if (response.status !== 200) {
-          request.abort();
-        }
-      });
+    const ts = moment().format();
+    const request = superagent
+      .get(`${URL_BASE}${URL_SUFFIX_TEMPLATE}`)
+      .set('api-key', apiKey)
+      .set('ts', ts)
+      .set('hmac-hash', hmac({ apiKey }, ts, secretKey));
 
-      request.pipe(createWriteStream(`${path}/template.zip`));
-
-      console.log('write template');
+    // If a custom domain has been set, no point in strictly checking SSL certs
+    if (process.env.NODEWOOD_DOMAIN) {
+      request.disableTLSCerts();
     }
-    catch (error) {
-      console.log(error);
-    }
+
+    request.on('response', (response) => {
+      if (response.status !== 200) {
+        request.abort();
+      }
+    });
+
+    await request.pipe(createWriteStream(`${path}/template.zip`));
+
+    console.log('unzip template');
   }
 
   /**
