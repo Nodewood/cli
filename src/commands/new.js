@@ -1,6 +1,7 @@
 const chalk = require('chalk');
 const superagent = require('superagent');
 const moment = require('moment');
+const unzipper = require('unzipper');
 const { get } = require('lodash');
 const { resolve: pathResolve } = require('path');
 const { prompt } = require('inquirer');
@@ -11,6 +12,8 @@ const {
   lstatSync,
   writeJsonSync,
   createWriteStream,
+  createReadStream,
+  remove,
 } = require('fs-extra');
 const { Command } = require('../lib/Command');
 const { hmac } = require('../lib/hmac');
@@ -65,6 +68,8 @@ class NewCommand extends Command {
     try {
       await this.writeTemplate(path, apiKey, secretKey);
       await this.writeWood(path, apiKey, secretKey);
+
+      console.log('template the path with project name');
 
       writeJsonSync(
         pathResolve(path, '.nodewood.js'),
@@ -151,14 +156,33 @@ class NewCommand extends Command {
    *
    * @param {String} path - The path to write the template to.
    * @param {String} apiKey - The API key to pass to the Nodewood server.
-   * @param {String} secretKey - The Secret key to generate an HMAC hash with.
+   * @param {String} secretKey - The Secret Key to generate an HMAC hash with.
    */
   async writeTemplate(path, apiKey, secretKey) {
+    await this.downloadZip(
+      `${URL_BASE}${URL_SUFFIX_TEMPLATE}`,
+      `${path}/template.zip`,
+      apiKey,
+      secretKey,
+    );
+
+    await this.unzipZip(`${path}/template.zip`, path);
+  }
+
+  /**
+   * Download a zip from the Nodewood server.
+   *
+   * @param {String} from - The URL to download from.
+   * @param {String} to - The locaction to put the zip file.
+   * @param {String} apiKey - The API key to pass to the Nodewood server.
+   * @param {String} secretKey - The Secret Key to generate an HMAC hash with.
+   */
+  async downloadZip(from, to, apiKey, secretKey) {
     const ts = moment().format();
 
     await new Promise((resolve, reject) => {
       const request = superagent
-        .get(`${URL_BASE}${URL_SUFFIX_TEMPLATE}`)
+        .get(from)
         .set('api-key', apiKey)
         .set('ts', ts)
         .set('hmac-hash', hmac({ apiKey }, ts, secretKey));
@@ -172,7 +196,7 @@ class NewCommand extends Command {
 
       request.on('response', (response) => {
         if (response.status === 200) {
-          const writer = createWriteStream(`${path}/template.zip`);
+          const writer = createWriteStream(to);
           writer.write(response.body);
           resolve();
         }
@@ -183,8 +207,17 @@ class NewCommand extends Command {
 
       request.end();
     });
+  }
 
-    console.log('unzip template');
+  /**
+   * Unzip a local zip file and deletes it.
+   *
+   * @param {String} from - The location of the zip file.
+   * @param {String} to - Where to unzip to.
+   */
+  async unzipZip(from, to) {
+    await createReadStream(from).pipe(unzipper.Extract({ path: to }));
+    await remove(from);
   }
 
   /**
