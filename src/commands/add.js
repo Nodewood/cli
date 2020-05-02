@@ -410,7 +410,7 @@ class AddCommand extends Command {
       overwrite,
     );
 
-    if (init && ! this.addRouteToInit(feature, name)) {
+    if (init && ! this.addRouteToInit(feature, name, customPlural)) {
       this.deleteFile(
         feature,
         name,
@@ -430,6 +430,9 @@ class AddCommand extends Command {
   addRouteToInit(feature, name, customPlural) {
     const featureNames = this.getNames(feature, feature);
     const fileNames = this.getNames(name, customPlural);
+
+    console.log(featureNames);
+    console.log(fileNames);
 
     const source = resolve(process.cwd(), 'wood/templates/fragments/route.js');
     const target = resolve(process.cwd(), `app/features/${featureNames.kebabPluralName}/ui/init.js`);
@@ -493,7 +496,7 @@ class AddCommand extends Command {
       overwrite,
     );
 
-    if (init && ! this.addStoreToInit(feature, name)) {
+    if (init && ! this.addStoreToInit(feature, name, customPlural)) {
       this.deleteFile(
         feature,
         name,
