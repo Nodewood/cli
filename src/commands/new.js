@@ -170,6 +170,24 @@ class NewCommand extends Command {
   }
 
   /**
+   * Fetch the latest `wood` directory from the Nodewood server and write it to the provided path.
+   *
+   * @param {String} path - The path to write the `wood` directory to.
+   * @param {String} apiKey - The API key to pass to the Nodewood server.
+   * @param {String} secretKey - The Secret key to generate an HMAC hash with.
+   */
+  async writeWood(path, apiKey, secretKey) {
+    await this.downloadZip(
+      `${URL_BASE}${URL_SUFFIX_WOOD}`,
+      `${path}/wood.zip`,
+      apiKey,
+      secretKey,
+    );
+
+    await this.unzipZip(`${path}/wood.zip`, `${path}/wood`);
+  }
+
+  /**
    * Download a zip from the Nodewood server.
    *
    * @param {String} from - The URL to download from.
@@ -218,17 +236,6 @@ class NewCommand extends Command {
   async unzipZip(from, to) {
     await createReadStream(from).pipe(unzipper.Extract({ path: to }));
     await remove(from);
-  }
-
-  /**
-   * Fetch the latest `wood` directory from the Nodewood server and write it to the provided path.
-   *
-   * @param {String} path - The path to write the `wood` directory to.
-   * @param {String} apiKey - The API key to pass to the Nodewood server.
-   * @param {String} secretKey - The Secret key to generate an HMAC hash with.
-   */
-  async writeWood(path, apiKey, secretKey) {
-    console.log('write wood');
   }
 }
 
