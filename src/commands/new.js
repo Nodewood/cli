@@ -87,8 +87,8 @@ class NewCommand extends Command {
     const { apiKey, secretKey } = await this.getApiKeys();
 
     try {
-      await this.writeTemplate(path, apiKey, secretKey);
-      await this.writeWood(path, apiKey, secretKey);
+      const templateVersions = await this.installTemplate(path, apiKey, secretKey);
+      const woodVersions = await this.installWood(path, apiKey, secretKey);
       await this.templateFiles(path, apiKey, secretKey);
 
       writeJsonSync(
@@ -99,6 +99,19 @@ class NewCommand extends Command {
 
       console.log('New project created at:');
       console.log(chalk.cyan(path));
+
+      if (templateVersions.downloaded !== templateVersions.latest
+        || woodVersions.downloaded !== woodVersions.latest) {
+        const latest = woodVersions.downloaded !== woodVersions.latest
+          ? woodVersions.latest
+          : templateVersions.latest;
+        const downloaded = woodVersions.downloaded !== woodVersions.latest
+          ? woodVersions.downloaded
+          : templateVersions.downloaded;
+
+        console.log(chalk.yellow(`\nA later version of Nodewood (${latest}) is available than what your license allows you to download (${downloaded}).`)); // eslint-disable-line max-len
+        console.log(chalk.yellow(`Log in to your account at ${chalk.cyan('https://nodewood.com')} and purchase an extension to your license to download the latest updates.`)); // eslint-disable-line max-len
+      }
     }
     catch (error) {
       if (process.env.NODE_DEV === 'development') {
@@ -214,9 +227,11 @@ class NewCommand extends Command {
    * @param {String} path - The path to write the template to.
    * @param {String} apiKey - The API key to pass to the Nodewood server.
    * @param {String} secretKey - The Secret Key to generate an HMAC hash with.
+   *
+   * @return { downloaded, latest } The downloaded and latest-possible version of the template.
    */
-  async writeTemplate(path, apiKey, secretKey) {
-    await this.downloadZip(
+  async installTemplate(path, apiKey, secretKey) {
+    const versions = await this.downloadZip(
       `${URL_BASE}${URL_SUFFIX_TEMPLATE}`,
       `${path}/template.zip`,
       apiKey,
@@ -224,6 +239,8 @@ class NewCommand extends Command {
     );
 
     await this.unzipZip(`${path}/template.zip`, path);
+
+    return versions;
   }
 
   /**
@@ -232,9 +249,11 @@ class NewCommand extends Command {
    * @param {String} path - The path to write the `wood` directory to.
    * @param {String} apiKey - The API key to pass to the Nodewood server.
    * @param {String} secretKey - The Secret key to generate an HMAC hash with.
+   *
+   * @return { downloaded, latest } The downloaded and latest-possible version of wood.
    */
-  async writeWood(path, apiKey, secretKey) {
-    await this.downloadZip(
+  async installWood(path, apiKey, secretKey) {
+    const versions = await this.downloadZip(
       `${URL_BASE}${URL_SUFFIX_WOOD}`,
       `${path}/wood.zip`,
       apiKey,
@@ -242,6 +261,8 @@ class NewCommand extends Command {
     );
 
     await this.unzipZip(`${path}/wood.zip`, `${path}/wood`);
+
+    return versions;
   }
 
   /**
@@ -273,11 +294,13 @@ class NewCommand extends Command {
    * @param {String} to - The locaction to put the zip file.
    * @param {String} apiKey - The API key to pass to the Nodewood server.
    * @param {String} secretKey - The Secret Key to generate an HMAC hash with.
+   *
+   * @return { downloaded, latest } The downloaded and latest-possible version of the zip.
    */
   async downloadZip(from, to, apiKey, secretKey) {
     const ts = moment().format();
 
-    await new Promise((resolve, reject) => {
+    const versions = await new Promise((resolve, reject) => {
       const request = superagent
         .get(from)
         .set('api-key', apiKey)
@@ -295,7 +318,10 @@ class NewCommand extends Command {
         if (response.status === 200) {
           const writer = createWriteStream(to);
           writer.write(response.body);
-          resolve();
+          resolve({
+            downloaded: response.headers['downloaded-version'],
+            latest: response.headers['latest-version'],
+          });
         }
         else {
           request.abort();
@@ -304,6 +330,8 @@ class NewCommand extends Command {
 
       request.end();
     });
+
+    return versions;
   }
 
   /**

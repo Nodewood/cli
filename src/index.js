@@ -8,7 +8,7 @@ const { showHelp, showDetailedHelp } = require('./lib/help');
 const { version } = require('../package.json');
 
 console.log(chalk.yellow(figlet.textSync('Nodewood', { horizontalLayout: 'full' })));
-console.log(`Version ${version}\n`);
+console.log(`CLI Version ${version}\n`);
 
 const args = require('minimist')(process.argv.slice(2));
 const command = get(args._, 0, false);
