@@ -2,8 +2,9 @@ const chalk = require('chalk');
 const superagent = require('superagent');
 const moment = require('moment');
 const unzipper = require('unzipper');
-const { get } = require('lodash');
-const { resolve: pathResolve } = require('path');
+const klawSync = require('klaw-sync');
+const { get, kebabCase, snakeCase } = require('lodash');
+const { resolve: pathResolve, extname } = require('path');
 const { prompt } = require('inquirer');
 const {
   readdirSync,
@@ -14,6 +15,8 @@ const {
   createWriteStream,
   createReadStream,
   remove,
+  readFileSync,
+  writeFileSync,
 } = require('fs-extra');
 const { Command } = require('../lib/Command');
 const { hmac } = require('../lib/hmac');
@@ -21,6 +24,24 @@ const { hmac } = require('../lib/hmac');
 const URL_BASE = `https://${process.env.NODEWOOD_DOMAIN || 'nodewood.com'}/api/public`;
 const URL_SUFFIX_TEMPLATE = '/templates/latest';
 const URL_SUFFIX_WOOD = '/wood/latest';
+
+const TEMPLATE_KEYS = {
+  '###_PROJECT_NAME_###': 'name',
+  '###_KEBAB_PROJECT_NAME_###': 'kebabName',
+  '###_SNAKE_PROJECT_NAME_###': 'snakeName',
+};
+
+const EXTENSIONS_TO_TEMPLATE = [
+  '.js',
+  '.json',
+  '.yml',
+  '.yaml',
+  '.j2',
+  '.template',
+  '.html',
+  '.test',
+  '.md',
+];
 
 class NewCommand extends Command {
   /**
@@ -68,16 +89,22 @@ class NewCommand extends Command {
     try {
       await this.writeTemplate(path, apiKey, secretKey);
       await this.writeWood(path, apiKey, secretKey);
-
-      console.log('template the path with project name');
+      await this.templateFiles(path, apiKey, secretKey);
 
       writeJsonSync(
         pathResolve(path, '.nodewood.js'),
         { apiKey, secretKey },
         { spaces: 2 },
       );
+
+      console.log('New project created at:');
+      console.log(chalk.cyan(path));
     }
     catch (error) {
+      if (process.env.NODE_DEV === 'development') {
+        console.log(error);
+      }
+
       if (get(error, 'response.body.errors')) {
         const errorMessage = error.response.body.errors
           .map((errorEntry) => errorEntry.title)
@@ -89,6 +116,36 @@ class NewCommand extends Command {
         console.log(chalk.red(error.message));
       }
     }
+  }
+
+  /**
+   * Get the various versions the provided name to be used when templating.
+   *
+   * @param {String} name - The name to get the modified names of.
+   *
+   * @return {Object}
+   */
+  getNames(name) {
+    return {
+      name,
+      kebabName: kebabCase(name),
+      snakeName: snakeCase(name),
+    };
+  }
+
+  /**
+   * Takes a string and templates it with the provided names.
+   *
+   * @param {String} template - The string to template.
+   * @param {Object} names - The names to replace with.
+   *
+   * @return {String}
+   */
+  templateString(templateString, names) {
+    return Object.entries(TEMPLATE_KEYS).reduce(
+      (string, [key, value]) => string.replace(new RegExp(key, 'g'), get(names, value)),
+      templateString,
+    );
   }
 
   /**
@@ -188,6 +245,28 @@ class NewCommand extends Command {
   }
 
   /**
+   * Template the downloaded files with the project name.
+   *
+   * @param {String} path - The path to find the files to template.
+   * @param {String} apiKey - The API key to pass to the Nodewood server.
+   * @param {String} secretKey - The Secret key to generate an HMAC hash with.
+   */
+  async templateFiles(path, apiKey, secretKey) {
+    const names = this.getNames('Microsoft Office');
+
+    const files = klawSync(path, {
+      nodir: true,
+      traverseAll: true,
+      filter: ({ path: filePath }) => EXTENSIONS_TO_TEMPLATE.includes(extname(filePath)),
+    });
+
+    files.forEach((file) => {
+      const contents = readFileSync(file.path, 'utf-8');
+      writeFileSync(file.path, this.templateString(contents, names));
+    });
+  }
+
+  /**
    * Download a zip from the Nodewood server.
    *
    * @param {String} from - The URL to download from.
@@ -234,7 +313,13 @@ class NewCommand extends Command {
    * @param {String} to - Where to unzip to.
    */
   async unzipZip(from, to) {
-    await createReadStream(from).pipe(unzipper.Extract({ path: to }));
+    await new Promise((resolve, reject) => {
+      createReadStream(from)
+        .pipe(unzipper.Extract({ path: to }))
+        .on('finish', resolve)
+        .on('error', reject);
+    });
+
     await remove(from);
   }
 }
