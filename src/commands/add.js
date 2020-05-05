@@ -1,4 +1,5 @@
 const chalk = require('chalk');
+const moment = require('moment');
 const pluralize = require('pluralize');
 const klawSync = require('klaw-sync');
 const {
@@ -33,6 +34,7 @@ const TYPE_DIALOG = 'dialog';
 const TYPE_STORE = 'store';
 const TYPE_FORM = 'form';
 const TYPE_MODEL = 'model';
+const TYPE_MIGRATION = 'migration';
 
 const TEMPLATE_KEYS = {
   '###_SINGULAR_NAME_###': 'file.singularName',
@@ -44,7 +46,7 @@ const TEMPLATE_KEYS = {
   '###_CAMEL_PLURAL_NAME_###': 'file.camelPluralName',
   '###_PASCAL_PLURAL_NAME_###': 'file.pascalPluralName',
   '###_KEBAB_PLURAL_NAME_###': 'file.kebabPluralName',
-  '###_SNAKE_PLURAL_NAME_###': 'file.snakePluralNameName',
+  '###_SNAKE_PLURAL_NAME_###': 'file.snakePluralName',
 
   '###_FEATURE_SINGULAR_NAME_###': 'feature.singularName',
   '###_FEATURE_PLURAL_NAME_###': 'feature.pluralName',
@@ -55,7 +57,7 @@ const TEMPLATE_KEYS = {
   '###_FEATURE_CAMEL_PLURAL_NAME_###': 'feature.camelPluralName',
   '###_FEATURE_PASCAL_PLURAL_NAME_###': 'feature.pascalPluralName',
   '###_FEATURE_KEBAB_PLURAL_NAME_###': 'feature.kebabPluralName',
-  '###_FEATURE_SNAKE_PLURAL_NAME_###': 'feature.snakePluralNameName',
+  '###_FEATURE_SNAKE_PLURAL_NAME_###': 'feature.snakePluralName',
 };
 
 class AddCommand extends Command {
@@ -89,12 +91,13 @@ class AddCommand extends Command {
     console.log(`\nNote: ${chalk.cyan('FEATURE')} and ${chalk.cyan('NAME')} must be kebab-case.`);
 
     console.log(chalk.yellow('\nOptions:'));
-    console.log(`  ${chalk.cyan('--overwrite')}    # Overwrite existing files`);
+    console.log(`  ${chalk.cyan('--overwrite')}    # Overwrite existing files (does not apply to migrations)`);
     console.log(`  ${chalk.cyan('--no-examples')}  # Do not add controller, service, page, etc examples to new feature`);
     console.log(`  ${chalk.cyan('--no-init')}      # Do not modify init.js when adding page or store`);
 
     console.log(chalk.yellow('\nExamples:'));
     console.log('  nodewood add feature api-tokens --no-examples');
+    console.log('  nodewood add migration api-tokens');
     console.log('  nodewood add dialog api-tokens edit-token --overwrite');
     console.log('  nodewood add page api-tokens list-tokens --no-init');
   }
@@ -114,6 +117,11 @@ class AddCommand extends Command {
       const examples = get(args, 'examples', true);
 
       this.addFeature(name, customPlural, examples, overwrite);
+    }
+    else if (toAdd === TYPE_MIGRATION) {
+      const name = get(args._, 2, false);
+
+      this.addMigration(name);
     }
     else {
       const feature = get(args._, 2, false);
@@ -177,7 +185,7 @@ class AddCommand extends Command {
       camelPluralName: camelCase(pluralName),
       pascalPluralName: upperFirst(camelCase(pluralName)),
       kebabPluralName: kebabCase(pluralName),
-      snakePluralNameName: snakeCase(pluralName),
+      snakePluralName: snakeCase(pluralName),
     };
   }
 
@@ -259,6 +267,28 @@ class AddCommand extends Command {
     }
 
     console.log(`\nEnsure you add '${chalk.cyan(featureNames.kebabPluralName)}' to the '${chalk.cyan('features')}' array in '${chalk.cyan('app/config/app.js')}'.`);
+  }
+
+  /**
+   * Adds a new migration.
+   *
+   * @param {String} name - The name of the migration to add.
+   */
+  addMigration(name) {
+    const names = this.getNames(name);
+    const ts = moment().format('YYYYMMDDHHmmss');
+    const sourcePath = resolve(process.cwd(), 'wood/templates/migration/Migration.js');
+    const targetPath = resolve(process.cwd(), `app/migrations/${ts}_${names.snakePluralName}.js`);
+
+    const contents = readFileSync(sourcePath, 'utf-8');
+    writeFileSync(
+      targetPath,
+      this.templateString(contents, names, names),
+    );
+
+    console.log('Migration created at:');
+    console.log(chalk.cyan(targetPath));
+    console.log(`\nAfter editing, make sure to run migrations with ${chalk.cyan('yarn migrate')} and restart your API server.`); // eslint-disable-line max-len
   }
 
   /**
