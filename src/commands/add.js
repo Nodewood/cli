@@ -108,6 +108,11 @@ class AddCommand extends Command {
    * @param {Array} args - Command arguments, as parsed by minimist.
    */
   execute(args) {
+    if (! this.isNodewoodProject()) {
+      console.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
+      return;
+    }
+
     const toAdd = get(args._, 1, false);
     const overwrite = get(args, 'overwrite', false);
     const customPlural = get(args, 'plural', false);
@@ -156,6 +161,23 @@ class AddCommand extends Command {
       else {
         console.log(chalk.red(`Invalid type to add: '${toAdd}'`));
       }
+    }
+  }
+
+  /**
+   * Confirms that the working folder is the root of a Nodewood project.
+   *
+   * @return {Boolean}
+   */
+  isNodewoodProject() {
+    try {
+      // ".nodewood.js" should exist in the root of all Nodewood projects
+      require(resolve(process.cwd(), '.nodewood.js')); // eslint-disable-line global-require
+
+      return true;
+    }
+    catch (error) {
+      return false;
     }
   }
 
@@ -264,6 +286,7 @@ class AddCommand extends Command {
       this.addStore(name, name, name, overwrite, true);
       this.addFormValidator(name, name, name, overwrite);
       this.addModel(name, name, name, overwrite);
+      this.addMigration(name);
     }
 
     console.log(`\nEnsure you add '${chalk.cyan(featureNames.kebabPluralName)}' to the '${chalk.cyan('features')}' array in '${chalk.cyan('app/config/app.js')}'.`);
