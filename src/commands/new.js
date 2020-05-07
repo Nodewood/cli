@@ -11,7 +11,6 @@ const {
   emptyDirSync,
   existsSync,
   lstatSync,
-  writeJsonSync,
   createWriteStream,
   createReadStream,
   remove,
@@ -24,6 +23,7 @@ const { hmac } = require('../lib/hmac');
 const URL_BASE = `https://${process.env.NODEWOOD_DOMAIN || 'nodewood.com'}/api/public`;
 const URL_SUFFIX_TEMPLATE = '/templates/latest';
 const URL_SUFFIX_WOOD = '/wood/latest';
+const URL_SUFFIX_PROJECT_INFO = '/projects/'; // Requires :apiKey on the end
 
 const TEMPLATE_KEYS = {
   '###_PROJECT_NAME_###': 'name',
@@ -89,13 +89,10 @@ class NewCommand extends Command {
     try {
       const templateVersions = await this.installTemplate(path, apiKey, secretKey);
       const woodVersions = await this.installWood(path, apiKey, secretKey);
-      await this.templateFiles(path, apiKey, secretKey);
+      const project = await this.getProjectDetails(apiKey, secretKey);
 
-      writeJsonSync(
-        pathResolve(path, '.nodewood.js'),
-        { apiKey, secretKey },
-        { spaces: 2 },
-      );
+      await this.templateFiles(path, project, apiKey, secretKey);
+      await this.writeConfigFile(path, { ...project, apiKey, secretKey });
 
       console.log('New project created at:');
       console.log(chalk.cyan(path));
@@ -129,6 +126,45 @@ class NewCommand extends Command {
         console.log(chalk.red(error.message));
       }
     }
+  }
+
+  /**
+   * Get the project details from the Nodewood API by the API Key.
+   *
+   * @param {String} apiKey - The API Key to use to look up the project with.
+   * @param {String} secretKey - The Secret Key to use to sign the request.
+   *
+   * @return {Object}
+   */
+  async getProjectDetails(apiKey, secretKey) {
+    const ts = moment().format();
+    const request = superagent
+      .get(`${URL_BASE}${URL_SUFFIX_PROJECT_INFO}${apiKey}`)
+      .set('api-key', apiKey)
+      .set('ts', ts)
+      .set('hmac-hash', hmac({ apiKey }, ts, secretKey));
+
+    // If a custom domain has been set, no point in strictly checking SSL certs
+    if (process.env.NODEWOOD_DOMAIN) {
+      request.disableTLSCerts();
+    }
+
+    const response = await request;
+
+    return response.body.data;
+  }
+
+  /**
+   * Write a configuration file in the new project's root.
+   *
+   * @param {String} path - The path to the root of the new project.
+   * @param {Object} project - The project details to write for the configuration.
+   */
+  writeConfigFile(path, project) {
+    writeFileSync(
+      pathResolve(path, '.nodewood.js'),
+      `module.exports = {\n  name: '${project.name}',\n  apiKey: '${project.apiKey}',\n  secretKey: '${project.secretKey}',\n};\n`, // eslint-disable-line max-len
+    );
   }
 
   /**
@@ -266,14 +302,15 @@ class NewCommand extends Command {
   }
 
   /**
-   * Template the downloaded files with the project name.
+   * Template the downloaded files with the project details.
    *
    * @param {String} path - The path to find the files to template.
+   * @param {Object} project - The project to template with.
    * @param {String} apiKey - The API key to pass to the Nodewood server.
    * @param {String} secretKey - The Secret key to generate an HMAC hash with.
    */
-  async templateFiles(path, apiKey, secretKey) {
-    const names = this.getNames('Microsoft Office');
+  async templateFiles(path, project, apiKey, secretKey) {
+    const names = this.getNames(project.name);
 
     const files = klawSync(path, {
       nodir: true,
