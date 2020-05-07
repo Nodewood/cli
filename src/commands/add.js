@@ -114,14 +114,20 @@ class AddCommand extends Command {
     }
 
     const toAdd = get(args._, 1, false);
-    const overwrite = get(args, 'overwrite', false);
-    const customPlural = get(args, 'plural', false);
+
+    const parsedArgs = {
+      overwrite: get(args, 'overwrite', false),
+      customPlural: get(args, 'plural', false),
+      init: get(args, 'init', true),
+    };
 
     if (toAdd === TYPE_FEATURE) {
       const name = get(args._, 2, false);
-      const examples = get(args, 'examples', true);
 
-      this.addFeature(name, customPlural, examples, overwrite);
+      this.addFeature(name, {
+        ...parsedArgs,
+        examples: get(args, 'examples', true),
+      });
     }
     else if (toAdd === TYPE_MIGRATION) {
       const name = get(args._, 2, false);
@@ -138,25 +144,25 @@ class AddCommand extends Command {
       }
 
       if (toAdd === TYPE_CONTROLLER) {
-        this.addController(feature, name, customPlural, overwrite);
+        this.addController(feature, name, parsedArgs);
       }
       else if (toAdd === TYPE_SERVICE) {
-        this.addService(feature, name, customPlural, overwrite);
+        this.addService(feature, name, parsedArgs);
       }
       else if (toAdd === TYPE_PAGE) {
-        this.addPage(feature, name, customPlural, overwrite, get(args, 'init', true));
+        this.addPage(feature, name, parsedArgs);
       }
       else if (toAdd === TYPE_DIALOG) {
-        this.addDialog(feature, name, customPlural, overwrite);
+        this.addDialog(feature, name, parsedArgs);
       }
       else if (toAdd === TYPE_STORE) {
-        this.addStore(feature, name, customPlural, overwrite, get(args, 'init', true));
+        this.addStore(feature, name, parsedArgs);
       }
       else if (toAdd === TYPE_FORM) {
-        this.addFormValidator(feature, name, customPlural, overwrite);
+        this.addFormValidator(feature, name, parsedArgs);
       }
       else if (toAdd === TYPE_MODEL) {
-        this.addModel(feature, name, customPlural, overwrite);
+        this.addModel(feature, name, parsedArgs);
       }
       else {
         console.log(chalk.red(`Invalid type to add: '${toAdd}'`));
@@ -239,7 +245,7 @@ class AddCommand extends Command {
    * @param {Boolean} examples - If we should add the examples to the feature.
    * @param {Boolean} overwrite - If we should overwrite any existing feature.
    */
-  addFeature(name, customPlural, examples, overwrite) {
+  addFeature(name, { customPlural, examples, overwrite } = {}) {
     const featureNames = this.getNames(name, customPlural);
 
     const sourceDir = resolve(process.cwd(), 'wood/templates/feature');
@@ -322,7 +328,7 @@ class AddCommand extends Command {
    * @param {String} customPlural - A user-provided custom plural (or false for none).
    * @param {Boolean} overwrite - If we should overwrite the controller.
    */
-  addController(feature, name, customPlural, overwrite) {
+  addController(feature, name, { customPlural, overwrite } = {}) {
     const featureNames = this.getNames(feature, feature);
     const fileNames = this.getNames(name, customPlural);
 
@@ -431,7 +437,7 @@ class AddCommand extends Command {
    * @param {String} customPlural - A user-provided custom plural (or false for none).
    * @param {Boolean} overwrite - If we should overwrite the service.
    */
-  addService(feature, name, customPlural, overwrite) {
+  addService(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/service/Service.js',
       'app/features/<%= featureName %>/api/services/<%= fileNamePlural %>Service.js',
@@ -452,7 +458,7 @@ class AddCommand extends Command {
    * @param {Boolean} overwrite - If we should overwrite the page.
    * @param {Boolean} init - If we should create the route in the init.js as well.
    */
-  addPage(feature, name, customPlural, overwrite, init) {
+  addPage(feature, name, { customPlural, overwrite, init } = {}) {
     this.addTemplateFile(
       'wood/templates/page/Page.vue',
       'app/features/<%= featureName %>/ui/pages/<%= fileNamePlural %>Page.vue',
@@ -517,7 +523,7 @@ class AddCommand extends Command {
    * @param {String} customPlural - A user-provided custom plural (or false for none).
    * @param {Boolean} overwrite - If we should overwrite the dialog.
    */
-  addDialog(feature, name, customPlural, overwrite) {
+  addDialog(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/dialog/Dialog.vue',
       'app/features/<%= featureName %>/ui/dialogs/<%= fileName %>Dialog.vue',
@@ -538,7 +544,7 @@ class AddCommand extends Command {
    * @param {Boolean} overwrite - If we should overwrite the store.
    * @param {Boolean} init - If we should create the store in the init.js as well.
    */
-  addStore(feature, name, customPlural, overwrite, init) {
+  addStore(feature, name, { customPlural, overwrite, init } = {}) {
     this.addTemplateFile(
       'wood/templates/store/Store.js',
       'app/features/<%= featureName %>/ui/<%= fileName %>Store.js',
@@ -600,7 +606,7 @@ class AddCommand extends Command {
    * @param {String} customPlural - A user-provided custom plural (or false for none).
    * @param {Boolean} overwrite - If we should overwrite the form validator.
    */
-  addFormValidator(feature, name, customPlural, overwrite) {
+  addFormValidator(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/form-validator/FormValidator.js',
       'app/features/<%= featureName %>/<%= fileName %>FormValidator.js',
@@ -620,7 +626,7 @@ class AddCommand extends Command {
    * @param {String} customPlural - A user-provided custom plural (or false for none).
    * @param {Boolean} overwrite - If we should overwrite the model.
    */
-  addModel(feature, name, customPlural, overwrite) {
+  addModel(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/model/Model.js',
       'app/features/<%= featureName %>/<%= fileName %>Model.js',
