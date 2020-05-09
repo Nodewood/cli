@@ -295,7 +295,8 @@ class AddCommand extends Command {
       this.addMigration(name);
     }
 
-    console.log(`\nEnsure you add '${chalk.cyan(featureNames.kebabPluralName)}' to the '${chalk.cyan('features')}' array in '${chalk.cyan('app/config/app.js')}'.`);
+    console.log(`\nTo enable your new feature, add '${chalk.cyan(featureNames.kebabPluralName)}' to the '${chalk.cyan('features')}' array in '${chalk.cyan('app/config/app.js')}'.`);
+    console.log(`To add your feature to the sidebar, add an entry for it to the '${chalk.cyan('sidebar')}' array in '${chalk.cyan('app/config/app.js')}'.`);
   }
 
   /**
