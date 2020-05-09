@@ -37,16 +37,16 @@ const TYPE_MODEL = 'model';
 const TYPE_MIGRATION = 'migration';
 
 const TEMPLATE_KEYS = {
-  '###_SINGULAR_NAME_###': 'file.singularName',
-  '###_PLURAL_NAME_###': 'file.pluralName',
-  '###_CAMEL_NAME_###': 'file.camelName',
-  '###_PASCAL_NAME_###': 'file.pascalName',
-  '###_KEBAB_NAME_###': 'file.kebabName',
-  '###_SNAKE_NAME_###': 'file.snakeName',
-  '###_CAMEL_PLURAL_NAME_###': 'file.camelPluralName',
-  '###_PASCAL_PLURAL_NAME_###': 'file.pascalPluralName',
-  '###_KEBAB_PLURAL_NAME_###': 'file.kebabPluralName',
-  '###_SNAKE_PLURAL_NAME_###': 'file.snakePluralName',
+  '###_SINGULAR_NAME_###': 'file.singularName', // api token
+  '###_PLURAL_NAME_###': 'file.pluralName', // api tokens
+  '###_CAMEL_NAME_###': 'file.camelName', // apiToken
+  '###_PASCAL_NAME_###': 'file.pascalName', // ApiToken
+  '###_KEBAB_NAME_###': 'file.kebabName', // api-token
+  '###_SNAKE_NAME_###': 'file.snakeName', // api_token
+  '###_CAMEL_PLURAL_NAME_###': 'file.camelPluralName', // apiTokens
+  '###_PASCAL_PLURAL_NAME_###': 'file.pascalPluralName', // ApiTokens
+  '###_KEBAB_PLURAL_NAME_###': 'file.kebabPluralName', // api-tokens
+  '###_SNAKE_PLURAL_NAME_###': 'file.snakePluralName', // api_tokens
 
   '###_FEATURE_SINGULAR_NAME_###': 'feature.singularName',
   '###_FEATURE_PLURAL_NAME_###': 'feature.pluralName',
@@ -285,13 +285,13 @@ class AddCommand extends Command {
     console.log(chalk.cyan(targetDir));
 
     if (examples) {
-      this.addController(name, name, name, overwrite);
-      this.addService(name, name, name, overwrite);
-      this.addPage(name, name, name, overwrite, true);
-      this.addDialog(name, name, name, overwrite);
-      this.addStore(name, name, name, overwrite, true);
-      this.addFormValidator(name, name, name, overwrite);
-      this.addModel(name, name, name, overwrite);
+      this.addController(name, name, { customPlural: name, overwrite });
+      this.addService(name, name, { customPlural: name, overwrite });
+      this.addPage(name, name, { customPlural: name, overwrite, init: true });
+      this.addDialog(name, name, { customPlural: name, overwrite });
+      this.addStore(name, name, { customPlural: name, overwrite, init: true });
+      this.addFormValidator(name, name, { customPlural: name, overwrite });
+      this.addModel(name, name, { customPlural: name, overwrite });
       this.addMigration(name);
     }
 
@@ -490,9 +490,6 @@ class AddCommand extends Command {
     const featureNames = this.getNames(feature, feature);
     const fileNames = this.getNames(name, customPlural);
 
-    console.log(featureNames);
-    console.log(fileNames);
-
     const source = resolve(process.cwd(), 'wood/templates/fragments/route.js');
     const target = resolve(process.cwd(), `app/features/${featureNames.kebabPluralName}/ui/init.js`);
 
@@ -511,6 +508,7 @@ class AddCommand extends Command {
     }
 
     writeFileSync(target, initFile.replace(ROUTE_LINE, `${routeFragment}\n${ROUTE_LINE}`));
+    console.log(`Route for ${chalk.cyan(name)} added to init.js.`);
 
     return true;
   }
@@ -594,6 +592,7 @@ class AddCommand extends Command {
     }
 
     writeFileSync(target, initFile.replace(STORE_LINE, `${storeFragment}\n${STORE_LINE}`));
+    console.log(`Store for ${chalk.cyan(name)} added to init.js.`);
 
     return true;
   }
