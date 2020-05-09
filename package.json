@@ -1,9 +1,12 @@
 {
-  "name": "Nodewood-cli",
+  "name": "@nodewood/cli",
   "version": "1.0.0",
   "description": "CLI for Nodewood SaaS starter kit",
   "main": "src/index.js",
-  "repository": "git@github.com:Nodewood/cli.git",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Nodewood/cli.git"
+  },
   "author": "DanHulton <dan@danhulton.com>",
   "license": "MIT",
   "private": false,
@@ -27,5 +30,15 @@
     "pluralize": "8.0.0",
     "superagent": "^5.2.2",
     "unzipper": "^0.10.11"
+  },
+  "bin": {
+    "nodewood": "./bin/cli.js"
+  },
+  "bugs": {
+    "url": "https://github.com/Nodewood/cli/issues"
+  },
+  "homepage": "https://nodewood.com",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }

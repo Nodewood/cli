@@ -1,10 +1,11 @@
+#!/usr/bin/env node
 require('dotenv').config();
 
 const chalk = require('chalk');
 const figlet = require('figlet');
 const { get } = require('lodash');
-const commands = require('./lib/commands');
-const { showHelp, showDetailedHelp } = require('./lib/help');
+const commands = require('../src/lib/commands');
+const { showHelp, showDetailedHelp } = require('../src/lib/help');
 const { version } = require('../package.json');
 
 console.log(chalk.yellow(figlet.textSync('Nodewood', { horizontalLayout: 'full' })));

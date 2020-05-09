@@ -1,8 +1,3 @@
-# cli
-Nodewood command-line interface.
+# Nodewood
 
-## Chalk text colours
-
-- `chalk.red()`: Error
-- `chalk.yellow()`: Warning, Nodewood logo
-- `chalk.cyan()`: "Code" formatting
+Command-line interface for installing and managing [Nodewood](https://nodewood.com) projects.
