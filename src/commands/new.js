@@ -4,7 +4,7 @@ const moment = require('moment');
 const unzipper = require('unzipper');
 const klawSync = require('klaw-sync');
 const { get, kebabCase, snakeCase } = require('lodash');
-const { resolve: pathResolve, extname } = require('path');
+const { resolve: pathResolve, extname, basename } = require('path');
 const { prompt } = require('inquirer');
 const {
   readdirSync,
@@ -16,6 +16,7 @@ const {
   remove,
   readFileSync,
   writeFileSync,
+  readJsonSync,
 } = require('fs-extra');
 const { Command } = require('../lib/Command');
 const { hmac } = require('../lib/hmac');
@@ -41,6 +42,10 @@ const EXTENSIONS_TO_TEMPLATE = [
   '.html',
   '.test',
   '.md',
+];
+
+const BASENAMES_TO_EMPLATE = [
+  'Vagrantfile',
 ];
 
 class NewCommand extends Command {
@@ -138,11 +143,13 @@ class NewCommand extends Command {
    * @return {Reequest}
    */
   buildRequest(url, apiKey, secretKey) {
+    const packageObj = readJsonSync(pathResolve(__dirname, '../../package.json'));
     const ts = moment().format();
     const request = superagent
       .get(url)
       .set('api-key', apiKey)
       .set('ts', ts)
+      .set('cli-version', packageObj.version)
       .set('hmac-hash', hmac({ apiKey }, ts, secretKey));
 
     // If a custom domain has been set, no point in strictly checking SSL certs
@@ -332,13 +339,25 @@ class NewCommand extends Command {
     const files = klawSync(path, {
       nodir: true,
       traverseAll: true,
-      filter: ({ path: filePath }) => EXTENSIONS_TO_TEMPLATE.includes(extname(filePath)),
+      filter: this.shouldTemplateFile,
     });
 
     files.forEach((file) => {
       const contents = readFileSync(file.path, 'utf-8');
       writeFileSync(file.path, this.templateString(contents, names));
     });
+  }
+
+  /**
+   * If the provided file should be templated.
+   *
+   * @param {Object} file - The file to decide if we should template.
+   *
+   * @return {boolean}
+   */
+  shouldTemplateFile(file) {
+    return EXTENSIONS_TO_TEMPLATE.includes(extname(file.path))
+      || BASENAMES_TO_EMPLATE.includes(basename(file.path));
   }
 
   /**

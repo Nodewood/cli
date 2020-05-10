@@ -4,12 +4,15 @@ require('dotenv').config();
 const chalk = require('chalk');
 const figlet = require('figlet');
 const { get } = require('lodash');
+const { readJsonSync } = require('fs-extra');
+const { resolve } = require('path');
 const commands = require('../src/lib/commands');
 const { showHelp, showDetailedHelp } = require('../src/lib/help');
-const { version } = require('../package.json');
+
+const packageObj = readJsonSync(resolve(__dirname, '../package.json'));
 
 console.log(chalk.yellow(figlet.textSync('Nodewood', { horizontalLayout: 'full' })));
-console.log(`CLI Version ${version}\n`);
+console.log(`CLI Version ${packageObj.version}\n`);
 
 const args = require('minimist')(process.argv.slice(2));
 const command = get(args._, 0, false);
