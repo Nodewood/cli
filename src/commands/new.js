@@ -22,8 +22,8 @@ const { Command } = require('../lib/Command');
 const { hmac } = require('../lib/hmac');
 
 const URL_BASE = `https://${process.env.NODEWOOD_DOMAIN || 'nodewood.com'}/api/public`;
-const URL_SUFFIX_TEMPLATE = '/templates/latest';
-const URL_SUFFIX_WOOD = '/wood/latest';
+const URL_SUFFIX_TEMPLATE = '/releases/templates/latest';
+const URL_SUFFIX_WOOD = '/releases/wood/latest';
 const URL_SUFFIX_PROJECT_INFO = '/projects/'; // Requires :apiKey on the end
 
 const TEMPLATE_KEYS = {
