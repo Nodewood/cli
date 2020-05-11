@@ -17,23 +17,6 @@ console.log(`CLI Version ${packageObj.version}\n`);
 const args = require('minimist')(process.argv.slice(2));
 const command = get(args._, 0, false);
 
-// Display generic help
-if (isInvalidCommand(command, commands) || isInvalidHelpCommand(command, args, commands)) {
-  showHelp(commands);
-}
-// Display detailed help
-else if (command === 'help') {
-  const helpCommand = get(args._, 1, false);
-  showDetailedHelp(helpCommand, commands);
-}
-// Execute a command
-else {
-  // TODO: Ensure in a Nodewood project
-
-  const instance = new commands[command]();
-  instance.execute(args);
-}
-
 /**
  * If the command sent to the CLI is a valid command that we know how to handle.
  *
@@ -60,3 +43,39 @@ function isInvalidHelpCommand(checkCommand, checkArgs, checkCommands) {
   const helpCommand = get(args._, 1, false);
   return checkCommand === 'help' && ! Object.keys(checkCommands).includes(helpCommand);
 }
+
+(async () => {
+  // Display generic help
+  if (isInvalidCommand(command, commands) || isInvalidHelpCommand(command, args, commands)) {
+    showHelp(commands);
+  }
+  // Display detailed help
+  else if (command === 'help') {
+    const helpCommand = get(args._, 1, false);
+    showDetailedHelp(helpCommand, commands);
+  }
+  // Execute a command
+  else {
+    try {
+      const instance = new commands[command]();
+      await instance.execute(args);
+    }
+    catch (error) {
+      if (process.env.NODE_DEV === 'development') {
+        console.log('Logging error in development mode:');
+        console.log(error);
+      }
+
+      if (get(error, 'response.body.errors')) {
+        const errorMessage = error.response.body.errors
+          .map((errorEntry) => errorEntry.title)
+          .join('. ');
+
+        console.log(chalk.red(`Error: ${errorMessage}`));
+      }
+      else {
+        console.log(chalk.red(error.message));
+      }
+    }
+  }
+})();
