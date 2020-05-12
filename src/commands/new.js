@@ -4,7 +4,7 @@ const moment = require('moment');
 const unzipper = require('unzipper');
 const klawSync = require('klaw-sync');
 const { get, kebabCase, snakeCase } = require('lodash');
-const { resolve: pathResolve, extname } = require('path');
+const { resolve: pathResolve, extname, basename } = require('path');
 const { prompt } = require('inquirer');
 const {
   readdirSync,
@@ -16,13 +16,14 @@ const {
   remove,
   readFileSync,
   writeFileSync,
+  readJsonSync,
 } = require('fs-extra');
 const { Command } = require('../lib/Command');
 const { hmac } = require('../lib/hmac');
 
 const URL_BASE = `https://${process.env.NODEWOOD_DOMAIN || 'nodewood.com'}/api/public`;
-const URL_SUFFIX_TEMPLATE = '/templates/latest';
-const URL_SUFFIX_WOOD = '/wood/latest';
+const URL_SUFFIX_TEMPLATE = '/releases/templates/latest';
+const URL_SUFFIX_WOOD = '/releases/wood/latest';
 const URL_SUFFIX_PROJECT_INFO = '/projects/'; // Requires :apiKey on the end
 
 const TEMPLATE_KEYS = {
@@ -41,6 +42,10 @@ const EXTENSIONS_TO_TEMPLATE = [
   '.html',
   '.test',
   '.md',
+];
+
+const BASENAMES_TO_EMPLATE = [
+  'Vagrantfile',
 ];
 
 class NewCommand extends Command {
@@ -86,45 +91,27 @@ class NewCommand extends Command {
 
     const { apiKey, secretKey } = await this.getApiKeys();
 
-    try {
-      const templateVersions = await this.installTemplate(path, apiKey, secretKey);
-      const woodVersions = await this.installWood(path, apiKey, secretKey);
-      const project = await this.getProjectDetails(apiKey, secretKey);
+    const templateVersions = await this.installTemplate(path, apiKey, secretKey);
+    const woodVersions = await this.installWood(path, apiKey, secretKey);
+    const project = await this.getProjectDetails(apiKey, secretKey);
 
-      await this.templateFiles(path, project, apiKey, secretKey);
-      await this.writeConfigFile(path, { ...project, apiKey, secretKey });
+    await this.templateFiles(path, project, apiKey, secretKey);
+    await this.writeConfigFile(path, { ...project, apiKey, secretKey });
 
-      console.log('New project created at:');
-      console.log(chalk.cyan(path));
+    console.log('New project created at:');
+    console.log(chalk.cyan(path));
 
-      if (templateVersions.downloaded !== templateVersions.latest
-        || woodVersions.downloaded !== woodVersions.latest) {
-        const latest = woodVersions.downloaded !== woodVersions.latest
-          ? woodVersions.latest
-          : templateVersions.latest;
-        const downloaded = woodVersions.downloaded !== woodVersions.latest
-          ? woodVersions.downloaded
-          : templateVersions.downloaded;
+    if (templateVersions.downloaded !== templateVersions.latest
+      || woodVersions.downloaded !== woodVersions.latest) {
+      const latest = woodVersions.downloaded !== woodVersions.latest
+        ? woodVersions.latest
+        : templateVersions.latest;
+      const downloaded = woodVersions.downloaded !== woodVersions.latest
+        ? woodVersions.downloaded
+        : templateVersions.downloaded;
 
-        console.log(chalk.yellow(`\nA later version of Nodewood (${latest}) is available than what your license allows you to download (${downloaded}).`)); // eslint-disable-line max-len
-        console.log(chalk.yellow(`Log in to your account at ${chalk.cyan('https://nodewood.com')} and purchase an extension to your license to download the latest updates.`)); // eslint-disable-line max-len
-      }
-    }
-    catch (error) {
-      if (process.env.NODE_DEV === 'development') {
-        console.log(error);
-      }
-
-      if (get(error, 'response.body.errors')) {
-        const errorMessage = error.response.body.errors
-          .map((errorEntry) => errorEntry.title)
-          .join('. ');
-
-        console.log(chalk.red(`Error: ${errorMessage}`));
-      }
-      else {
-        console.log(chalk.red(error.message));
-      }
+      console.log(chalk.yellow(`\nA later version of Nodewood (${latest}) is available than what your license allows you to download (${downloaded}).`)); // eslint-disable-line max-len
+      console.log(chalk.yellow(`Log in to your account at ${chalk.cyan('https://nodewood.com')} and purchase an extension to your license to download the latest updates.`)); // eslint-disable-line max-len
     }
   }
 
@@ -138,11 +125,13 @@ class NewCommand extends Command {
    * @return {Reequest}
    */
   buildRequest(url, apiKey, secretKey) {
+    const packageObj = readJsonSync(pathResolve(__dirname, '../../package.json'));
     const ts = moment().format();
     const request = superagent
       .get(url)
       .set('api-key', apiKey)
       .set('ts', ts)
+      .set('cli-version', packageObj.version)
       .set('hmac-hash', hmac({ apiKey }, ts, secretKey));
 
     // If a custom domain has been set, no point in strictly checking SSL certs
@@ -332,13 +321,25 @@ class NewCommand extends Command {
     const files = klawSync(path, {
       nodir: true,
       traverseAll: true,
-      filter: ({ path: filePath }) => EXTENSIONS_TO_TEMPLATE.includes(extname(filePath)),
+      filter: this.shouldTemplateFile,
     });
 
     files.forEach((file) => {
       const contents = readFileSync(file.path, 'utf-8');
       writeFileSync(file.path, this.templateString(contents, names));
     });
+  }
+
+  /**
+   * If the provided file should be templated.
+   *
+   * @param {Object} file - The file to decide if we should template.
+   *
+   * @return {boolean}
+   */
+  shouldTemplateFile(file) {
+    return EXTENSIONS_TO_TEMPLATE.includes(extname(file.path))
+      || BASENAMES_TO_EMPLATE.includes(basename(file.path));
   }
 
   /**
