@@ -2,7 +2,7 @@
   "name": "@nodewood/cli",
   "version": "0.1.0",
   "description": "CLI for Nodewood SaaS starter kit",
-  "main": "src/index.js",
+  "main": "bin/cli.js",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/Nodewood/cli.git"
