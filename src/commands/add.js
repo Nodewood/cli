@@ -20,6 +20,7 @@ const {
   writeFileSync,
 } = require('fs-extra');
 const { Command } = require('../lib/Command');
+const { isNodewoodProject } = require('../lib/file');
 
 const NODEWOOD_PREFIX = 'nodewood-';
 
@@ -108,7 +109,7 @@ class AddCommand extends Command {
    * @param {Array} args - Command arguments, as parsed by minimist.
    */
   execute(args) {
-    if (! this.isNodewoodProject()) {
+    if (! isNodewoodProject()) {
       console.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
       return;
     }
@@ -167,23 +168,6 @@ class AddCommand extends Command {
       else {
         console.log(chalk.red(`Invalid type to add: '${toAdd}'`));
       }
-    }
-  }
-
-  /**
-   * Confirms that the working folder is the root of a Nodewood project.
-   *
-   * @return {Boolean}
-   */
-  isNodewoodProject() {
-    try {
-      // ".nodewood.js" should exist in the root of all Nodewood projects
-      require(resolve(process.cwd(), '.nodewood.js')); // eslint-disable-line global-require
-
-      return true;
-    }
-    catch (error) {
-      return false;
     }
   }
 
