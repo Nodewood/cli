@@ -77,7 +77,7 @@ class AddCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    console.log('Add a file or feature from a template.');
+    console.log(this.helpLine());
 
     console.log(chalk.yellow('\nUsage:'));
     console.log('  nodewood add TYPE FEATURE [NAME] [OPTIONS]');
