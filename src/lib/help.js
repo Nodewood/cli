@@ -7,6 +7,8 @@ const chalk = require('chalk');
  * @param {Object} commands - The commands to get help text from.
  */
 function showHelp(commands) {
+  console.log(`For additional help on a command, type ${chalk.cyan('nodewood help COMMAND')}.\n`);
+
   console.log('Commands:');
 
   // eslint-disable-next-line no-restricted-syntax

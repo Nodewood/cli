@@ -64,7 +64,7 @@ class NewCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    console.log('Intialize a new Nodewood project.');
+    console.log(this.helpLine());
 
     console.log(chalk.yellow('\nUsage:'));
     console.log('  nodewood new DIR');

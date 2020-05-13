@@ -25,7 +25,7 @@ class DevCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    console.log('Start the API or UI development servers.');
+    console.log(this.helpLine());
 
     console.log(chalk.yellow('\nUsage:'));
     console.log('  nodewood dev TYPE');
