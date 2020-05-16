@@ -6,7 +6,11 @@ const { gt, lte } = require('semver');
 const { prompt } = require('inquirer');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
-const { buildRequest, URL_BASE } = require('../lib/net');
+const {
+  buildRequest,
+  installWood,
+  URL_BASE,
+} = require('../lib/net');
 
 class UpCommand extends Command {
   /**
@@ -41,8 +45,9 @@ class UpCommand extends Command {
       return;
     }
 
+    const { apiKey, secretKey } = require(resolve(process.cwd(), '.nodewood.js')); // eslint-disable-line global-require
     const { version: currentWoodVersion } = readJsonSync(resolve(process.cwd(), 'wood/package.json'));
-    const { releases, latestUserVersion } = await getReleaseInfo();
+    const { releases, latestUserVersion } = await getReleaseInfo(apiKey, secretKey);
     const latest = last(releases);
 
     // User is up to date
@@ -72,23 +77,21 @@ class UpCommand extends Command {
       return;
     }
 
-    // download latest version
-    // empty wood folder
-    // unzip into wood folder
-    // message
+    await installWood(process.cwd(), apiKey, secretKey);
 
-    console.log('upgrade go here!');
+    console.log(`Your Nodewood installation has been upgraded to ${chalk.cyan(targetRelease.version)}.`);
   }
 }
 
 /**
  * Get releases & latest user version info from Nodewood.com server.
  *
+ * @param {String} apiKey - The API Key for the project.
+ * @param {String} secretKey - The Secret Key for the project.
+ *
  * @return { releases, latestUserVersion }
  */
-async function getReleaseInfo() {
-  const { apiKey, secretKey } = require(resolve(process.cwd(), '.nodewood.js')); // eslint-disable-line global-require
-
+async function getReleaseInfo(apiKey, secretKey) {
   const response = await buildRequest(
     'GET',
     `${URL_BASE}/releases/wood`,
