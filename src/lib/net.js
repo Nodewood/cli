@@ -2,7 +2,7 @@ const { resolve } = require('path');
 const unzipper = require('unzipper');
 const superagent = require('superagent');
 const moment = require('moment');
-const { readJsonSync } = require('fs-extra');
+const { readJsonSync, emptyDirSync } = require('fs-extra');
 const { hmac } = require('../lib/hmac');
 const {
   createWriteStream,
@@ -51,14 +51,14 @@ function buildRequest(method, url, apiKey, secretKey) {
  * @return { downloaded, latest } The downloaded and latest-possible version of the template.
  */
 async function installTemplate(path, apiKey, secretKey) {
-  const versions = await this.d(
+  const versions = await downloadZip(
     `${URL_BASE}${URL_SUFFIX_TEMPLATE}`,
     `${path}/template.zip`,
     apiKey,
     secretKey,
   );
 
-  await this.unzipZip(`${path}/template.zip`, path);
+  await unzipZip(`${path}/template.zip`, path);
 
   return versions;
 }
@@ -80,6 +80,7 @@ async function installWood(path, apiKey, secretKey) {
     secretKey,
   );
 
+  emptyDirSync(`${path}/wood`);
   await unzipZip(`${path}/wood.zip`, `${path}/wood`);
 
   return versions;
