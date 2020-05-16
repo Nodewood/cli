@@ -66,15 +66,17 @@ function isInvalidHelpCommand(checkCommand, checkArgs, checkCommands) {
         console.log(error);
       }
 
+      console.log(chalk.red(`Could not complete your command.  If this continues, please email ${chalk.cyan('admin@nodewood.com')} for assistance.\n`));
+
       if (get(error, 'response.body.errors')) {
         const errorMessage = error.response.body.errors
           .map((errorEntry) => errorEntry.title)
           .join('. ');
 
-        console.log(chalk.red(`Error: ${errorMessage}`));
+        console.log(`Error message: ${errorMessage}`);
       }
       else {
-        console.log(chalk.red(error.message));
+        console.log(`Error message: ${error.message}`);
       }
     }
   }
