@@ -30,7 +30,7 @@ class VmCommand extends Command {
    *
    * @param {Array} args - Command arguments, as parsed by minimist.
    */
-  execute(args) {
+  async execute(args) {
     if (! isNodewoodProject()) {
       console.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
       return;

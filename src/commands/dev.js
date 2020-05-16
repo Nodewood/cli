@@ -39,13 +39,13 @@ class DevCommand extends Command {
    *
    * @param {Array} args - Command arguments, as parsed by minimist.
    */
-  execute(args) {
+  async execute(args) {
     if (! isNodewoodProject()) {
       console.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
       return;
     }
 
-    const type = get(args._, 1, false);
+    const type = get(args._, 1, 'empty');
     if (SERVER_TYPES.includes(type)) {
       spawn('sh', ['-c', `yarn dev-${type}`], { stdio: 'inherit' });
     }
