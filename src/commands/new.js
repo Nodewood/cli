@@ -1,6 +1,4 @@
 const chalk = require('chalk');
-const superagent = require('superagent');
-const moment = require('moment');
 const unzipper = require('unzipper');
 const klawSync = require('klaw-sync');
 const { get, kebabCase, snakeCase } = require('lodash');
@@ -16,14 +14,12 @@ const {
   remove,
   readFileSync,
   writeFileSync,
-  readJsonSync,
 } = require('fs-extra');
 const { Command } = require('../lib/Command');
-const { hmac } = require('../lib/hmac');
+const { buildRequest, URL_BASE } = require('../lib/net');
 
-const URL_BASE = `https://${process.env.NODEWOOD_DOMAIN || 'nodewood.com'}/api/public`;
-const URL_SUFFIX_TEMPLATE = '/releases/templates/latest';
-const URL_SUFFIX_WOOD = '/releases/wood/latest';
+const URL_SUFFIX_TEMPLATE = '/releases/templates/latest/download';
+const URL_SUFFIX_WOOD = '/releases/wood/latest/download';
 const URL_SUFFIX_PROJECT_INFO = '/projects/'; // Requires :apiKey on the end
 
 const TEMPLATE_KEYS = {
@@ -116,33 +112,6 @@ class NewCommand extends Command {
   }
 
   /**
-   * Build a request that can be awaited or streamed.
-   *
-   * @param {String} url - The URL of the request.
-   * @param {String} apiKey - The API Key to send with the request.
-   * @param {String} secretKey - The Secret Key to use to sign the request.
-   *
-   * @return {Reequest}
-   */
-  buildRequest(url, apiKey, secretKey) {
-    const packageObj = readJsonSync(pathResolve(__dirname, '../../package.json'));
-    const ts = moment().format();
-    const request = superagent
-      .get(url)
-      .set('api-key', apiKey)
-      .set('ts', ts)
-      .set('cli-version', packageObj.version)
-      .set('hmac-hash', hmac({ apiKey }, ts, secretKey));
-
-    // If a custom domain has been set, no point in strictly checking SSL certs
-    if (process.env.NODEWOOD_DOMAIN) {
-      request.disableTLSCerts();
-    }
-
-    return request;
-  }
-
-  /**
    * Get the project details from the Nodewood API by the API Key.
    *
    * @param {String} apiKey - The API Key to use to look up the project with.
@@ -151,7 +120,8 @@ class NewCommand extends Command {
    * @return {Object}
    */
   async getProjectDetails(apiKey, secretKey) {
-    const response = await this.buildRequest(
+    const response = await buildRequest(
+      'GET',
       `${URL_BASE}${URL_SUFFIX_PROJECT_INFO}${apiKey}`,
       apiKey,
       secretKey,
@@ -354,7 +324,7 @@ class NewCommand extends Command {
    */
   async downloadZip(from, to, apiKey, secretKey) {
     const versions = await new Promise((resolve, reject) => {
-      const request = this.buildRequest(from, apiKey, secretKey);
+      const request = buildRequest('GET', from, apiKey, secretKey);
 
       request.on('error', reject);
 
