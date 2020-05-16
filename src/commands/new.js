@@ -1,5 +1,4 @@
 const chalk = require('chalk');
-const unzipper = require('unzipper');
 const klawSync = require('klaw-sync');
 const { get, kebabCase, snakeCase } = require('lodash');
 const { resolve: pathResolve, extname, basename } = require('path');
@@ -9,17 +8,17 @@ const {
   emptyDirSync,
   existsSync,
   lstatSync,
-  createWriteStream,
-  createReadStream,
-  remove,
   readFileSync,
   writeFileSync,
 } = require('fs-extra');
 const { Command } = require('../lib/Command');
-const { buildRequest, URL_BASE } = require('../lib/net');
+const {
+  buildRequest,
+  installTemplate,
+  installWood,
+  URL_BASE,
+} = require('../lib/net');
 
-const URL_SUFFIX_TEMPLATE = '/releases/templates/latest/download';
-const URL_SUFFIX_WOOD = '/releases/wood/latest/download';
 const URL_SUFFIX_PROJECT_INFO = '/projects/'; // Requires :apiKey on the end
 
 const TEMPLATE_KEYS = {
@@ -87,8 +86,8 @@ class NewCommand extends Command {
 
     const { apiKey, secretKey } = await this.getApiKeys();
 
-    const templateVersions = await this.installTemplate(path, apiKey, secretKey);
-    const woodVersions = await this.installWood(path, apiKey, secretKey);
+    const templateVersions = await installTemplate(path, apiKey, secretKey);
+    const woodVersions = await installWood(path, apiKey, secretKey);
     const project = await this.getProjectDetails(apiKey, secretKey);
 
     await this.templateFiles(path, project, apiKey, secretKey);
@@ -234,50 +233,6 @@ class NewCommand extends Command {
   }
 
   /**
-   * Fetch the latest template from the Nodewood server and write it to the provided path.
-   *
-   * @param {String} path - The path to write the template to.
-   * @param {String} apiKey - The API key to pass to the Nodewood server.
-   * @param {String} secretKey - The Secret Key to generate an HMAC hash with.
-   *
-   * @return { downloaded, latest } The downloaded and latest-possible version of the template.
-   */
-  async installTemplate(path, apiKey, secretKey) {
-    const versions = await this.downloadZip(
-      `${URL_BASE}${URL_SUFFIX_TEMPLATE}`,
-      `${path}/template.zip`,
-      apiKey,
-      secretKey,
-    );
-
-    await this.unzipZip(`${path}/template.zip`, path);
-
-    return versions;
-  }
-
-  /**
-   * Fetch the latest `wood` directory from the Nodewood server and write it to the provided path.
-   *
-   * @param {String} path - The path to write the `wood` directory to.
-   * @param {String} apiKey - The API key to pass to the Nodewood server.
-   * @param {String} secretKey - The Secret key to generate an HMAC hash with.
-   *
-   * @return { downloaded, latest } The downloaded and latest-possible version of wood.
-   */
-  async installWood(path, apiKey, secretKey) {
-    const versions = await this.downloadZip(
-      `${URL_BASE}${URL_SUFFIX_WOOD}`,
-      `${path}/wood.zip`,
-      apiKey,
-      secretKey,
-    );
-
-    await this.unzipZip(`${path}/wood.zip`, `${path}/wood`);
-
-    return versions;
-  }
-
-  /**
    * Template the downloaded files with the project details.
    *
    * @param {String} path - The path to find the files to template.
@@ -310,59 +265,6 @@ class NewCommand extends Command {
   shouldTemplateFile(file) {
     return EXTENSIONS_TO_TEMPLATE.includes(extname(file.path))
       || BASENAMES_TO_EMPLATE.includes(basename(file.path));
-  }
-
-  /**
-   * Download a zip from the Nodewood server.
-   *
-   * @param {String} from - The URL to download from.
-   * @param {String} to - The locaction to put the zip file.
-   * @param {String} apiKey - The API key to pass to the Nodewood server.
-   * @param {String} secretKey - The Secret Key to generate an HMAC hash with.
-   *
-   * @return { downloaded, latest } The downloaded and latest-possible version of the zip.
-   */
-  async downloadZip(from, to, apiKey, secretKey) {
-    const versions = await new Promise((resolve, reject) => {
-      const request = buildRequest('GET', from, apiKey, secretKey);
-
-      request.on('error', reject);
-
-      request.on('response', (response) => {
-        if (response.status === 200) {
-          const writer = createWriteStream(to);
-          writer.write(response.body);
-          resolve({
-            downloaded: response.headers['downloaded-version'],
-            latest: response.headers['latest-version'],
-          });
-        }
-        else {
-          request.abort();
-        }
-      });
-
-      request.end();
-    });
-
-    return versions;
-  }
-
-  /**
-   * Unzip a local zip file and deletes it.
-   *
-   * @param {String} from - The location of the zip file.
-   * @param {String} to - Where to unzip to.
-   */
-  async unzipZip(from, to) {
-    await new Promise((resolve, reject) => {
-      createReadStream(from)
-        .pipe(unzipper.Extract({ path: to }))
-        .on('finish', resolve)
-        .on('error', reject);
-    });
-
-    await remove(from);
   }
 }
 
