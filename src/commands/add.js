@@ -92,9 +92,10 @@ class AddCommand extends Command {
     console.log(`\nNote: ${chalk.cyan('FEATURE')} and ${chalk.cyan('NAME')} must be kebab-case.`);
 
     console.log(chalk.yellow('\nOptions:'));
-    console.log(`  ${chalk.cyan('--overwrite')}    # Overwrite existing files (does not apply to migrations)`);
-    console.log(`  ${chalk.cyan('--no-examples')}  # Do not add controller, service, page, etc examples to new feature`);
-    console.log(`  ${chalk.cyan('--no-init')}      # Do not modify init.js when adding page or store`);
+    console.log(`  ${chalk.cyan('--overwrite')}     # Overwrite existing files (does not apply to migrations)`);
+    console.log(`  ${chalk.cyan('--no-examples')}   # Do not add controller, service, page, etc examples to new feature`);
+    console.log(`  ${chalk.cyan('--no-init')}       # Do not modify init.js when adding page or store`);
+    console.log(`  ${chalk.cyan('--plural=PLURAL')} # Use a custom plural`);
 
     console.log(chalk.yellow('\nExamples:'));
     console.log('  nodewood add feature api-tokens --no-examples');
