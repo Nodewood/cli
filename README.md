@@ -4,6 +4,12 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.5.0
+
+- Check for installed programs before running `new` command.
+- Adds help for custom plurals.
+
+
 ### 0.4.0
 
 - Adds `nodewood up` command.
