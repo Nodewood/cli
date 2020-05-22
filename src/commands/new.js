@@ -1,6 +1,7 @@
 const chalk = require('chalk');
 const klawSync = require('klaw-sync');
-const { get, kebabCase, snakeCase } = require('lodash');
+const { spawn } = require('child_process');
+const { get, kebabCase, snakeCase, compact } = require('lodash');
 const { resolve: pathResolve, extname, basename } = require('path');
 const { prompt } = require('inquirer');
 const {
@@ -74,6 +75,10 @@ class NewCommand extends Command {
    * @param {Array} args - Command arguments, as parsed by minimist.
    */
   async execute(args) {
+    if (! await this.areAllAppsInstalled()) {
+      return;
+    }
+
     const overwrite = get(args, 'overwrite', false);
     const path = pathResolve(process.cwd(), get(args._, 1, false));
 
@@ -95,6 +100,8 @@ class NewCommand extends Command {
 
     console.log('New project created at:');
     console.log(chalk.cyan(path));
+
+    await this.ansibleInstall(path);
 
     if (templateVersions.downloaded !== templateVersions.latest
       || woodVersions.downloaded !== woodVersions.latest) {
@@ -265,6 +272,61 @@ class NewCommand extends Command {
   shouldTemplateFile(file) {
     return EXTENSIONS_TO_TEMPLATE.includes(extname(file.path))
       || BASENAMES_TO_EMPLATE.includes(basename(file.path));
+  }
+
+  /**
+   * Ensure Vagrant, VirtualBox, Ansible, and Yarn are all installed.
+   *
+   * @return {boolean}
+   */
+  async areAllAppsInstalled() {
+    const missingPrograms = compact(await Promise.all([
+      this.canRun('vagrant --version', 'Vagrant'),
+      this.canRun('vboxmanage --version', 'VirtualBox'),
+      this.canRun('ansible --version', 'Ansible'),
+      this.canRun('yarn --version', 'Yarn'),
+    ]));
+
+    if (missingPrograms.length) {
+      console.log(chalk.red('Could not create new project, the following programs are not installed:'));
+      missingPrograms.forEach((program) => console.log(`- ${chalk.cyan(program)}`));
+
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Check if a program is installed by attempting to run a command.
+   *
+   * Returns either the name of the program if it couldn't be run, or null if it could.
+   *
+   * @param {String} command - The command to attempt to run.
+   * @param {String} program - The program we are checking for.
+   *
+   * @return {String|null}
+   */
+  async canRun(command, program) {
+    return new Promise((resolve, reject) => {
+      const cmdProcess = spawn('sh', ['-c', command], { stdio: 'ignore' });
+      cmdProcess.on('close', (code) => {
+        resolve(code > 0 ? program : null);
+      });
+      cmdProcess.on('error', (err) => reject(err));
+    });
+  }
+
+  /**
+   * Runs `yarn ansible-install` in the target directory.
+   */
+  ansibleInstall(path) {
+    console.log('Installing Ansible dependencies...');
+    return new Promise((resolve, reject) => {
+      const cmdProcess = spawn('sh', ['-c', `cd ${path} && yarn ansible-install`], { stdio: 'inherit' });
+      cmdProcess.on('close', (code) => resolve(code > 0));
+      cmdProcess.on('error', (err) => reject(err));
+    });
   }
 }
 

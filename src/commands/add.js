@@ -33,7 +33,7 @@ const TYPE_SERVICE = 'service';
 const TYPE_PAGE = 'page';
 const TYPE_DIALOG = 'dialog';
 const TYPE_STORE = 'store';
-const TYPE_FORM = 'form';
+const TYPE_VALIDATOR = 'validator';
 const TYPE_MODEL = 'model';
 const TYPE_MIGRATION = 'migration';
 
@@ -84,7 +84,7 @@ class AddCommand extends Command {
 
     console.log(chalk.yellow('\nParameters:'));
     console.log(`  ${chalk.cyan('TYPE')}     # What to add to your app`);
-    console.log(`           # Allowed: ${chalk.cyan('feature')}, ${chalk.cyan('controller')}, ${chalk.cyan('service')}, ${chalk.cyan('page')}, ${chalk.cyan('dialog')}, ${chalk.cyan('store')}, ${chalk.cyan('form')}, ${chalk.cyan('model')}`);
+    console.log(`           # Allowed: ${chalk.cyan('feature')}, ${chalk.cyan('controller')}, ${chalk.cyan('service')}, ${chalk.cyan('page')}, ${chalk.cyan('dialog')}, ${chalk.cyan('store')}, ${chalk.cyan('validator')}, ${chalk.cyan('model')}`);
     console.log(`  ${chalk.cyan('FEATURE')}  # The name of the feature to add, or the feature to add file to`);
     console.log(`  ${chalk.cyan('NAME')}     # The name of the file to add (optional)`);
     console.log(`  ${chalk.cyan('OPTIONS')}  # Options (see below)`);
@@ -92,9 +92,10 @@ class AddCommand extends Command {
     console.log(`\nNote: ${chalk.cyan('FEATURE')} and ${chalk.cyan('NAME')} must be kebab-case.`);
 
     console.log(chalk.yellow('\nOptions:'));
-    console.log(`  ${chalk.cyan('--overwrite')}    # Overwrite existing files (does not apply to migrations)`);
-    console.log(`  ${chalk.cyan('--no-examples')}  # Do not add controller, service, page, etc examples to new feature`);
-    console.log(`  ${chalk.cyan('--no-init')}      # Do not modify init.js when adding page or store`);
+    console.log(`  ${chalk.cyan('--overwrite')}     # Overwrite existing files (does not apply to migrations)`);
+    console.log(`  ${chalk.cyan('--no-examples')}   # Do not add controller, service, page, etc examples to new feature`);
+    console.log(`  ${chalk.cyan('--no-init')}       # Do not modify init.js when adding page or store`);
+    console.log(`  ${chalk.cyan('--plural=PLURAL')} # Use a custom plural`);
 
     console.log(chalk.yellow('\nExamples:'));
     console.log('  nodewood add feature api-tokens --no-examples');
@@ -159,7 +160,7 @@ class AddCommand extends Command {
       else if (toAdd === TYPE_STORE) {
         this.addStore(feature, name, parsedArgs);
       }
-      else if (toAdd === TYPE_FORM) {
+      else if (toAdd === TYPE_VALIDATOR) {
         this.addFormValidator(feature, name, parsedArgs);
       }
       else if (toAdd === TYPE_MODEL) {
@@ -583,18 +584,18 @@ class AddCommand extends Command {
   }
 
   /**
-   * Add a form validator.
+   * Add a validator.
    *
-   * @param {String} feature - The name of the feature to add the form validator to.
-   * @param {String} name - The name of the form validator to add.
+   * @param {String} feature - The name of the feature to add the validator to.
+   * @param {String} name - The name of the validator to add.
    * @param {String} customPlural - A user-provided custom plural (or false for none).
-   * @param {Boolean} overwrite - If we should overwrite the form validator.
+   * @param {Boolean} overwrite - If we should overwrite the validator.
    */
   addFormValidator(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
-      'wood/templates/form-validator/FormValidator.js',
-      'app/features/<%= featureName %>/<%= fileName %>FormValidator.js',
-      'form validator',
+      'wood/templates/validator/Validator.js',
+      'app/features/<%= featureName %>/<%= fileName %>Validator.js',
+      'validator',
       feature,
       name,
       customPlural,
