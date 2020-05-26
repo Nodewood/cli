@@ -531,7 +531,7 @@ class AddCommand extends Command {
   addStore(feature, name, { customPlural, overwrite, init } = {}) {
     this.addTemplateFile(
       'wood/templates/store/Store.js',
-      'app/features/<%= featureName %>/ui/<%= fileName %>Store.js',
+      'app/features/<%= featureName %>/ui/stores/<%= fileName %>Store.js',
       'store',
       feature,
       name,
@@ -543,7 +543,7 @@ class AddCommand extends Command {
       this.deleteFile(
         feature,
         name,
-        'app/features/<%= featureName %>/ui/<%= fileName %>Store.js',
+        'app/features/<%= featureName %>/ui/stores/<%= fileName %>Store.js',
       );
       console.log(chalk.red('Store removed.'));
     }
@@ -571,7 +571,7 @@ class AddCommand extends Command {
     const initFile = readFileSync(target, 'utf-8');
 
     // Don't add route if it already exists
-    if (initFile.includes(`'#features/${featureNames.kebabName}/ui/${fileNames.pascalPluralName}Store'`)) {
+    if (initFile.includes(`'#features/${featureNames.kebabName}/ui/stores/${fileNames.pascalPluralName}Store'`)) {
       console.log(chalk.red(`Store ${chalk.cyan(`${fileNames.pascalPluralName}Store`)} already exists in ${chalk.cyan(`app/features/${featureNames.kebabPluralName}/ui/init.js`)}.`));
       console.log(chalk.red('Please remove this store and try your command again.'));
       return false;
