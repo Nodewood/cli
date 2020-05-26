@@ -39,7 +39,6 @@
   },
   "homepage": "https://nodewood.com",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "publish": "npm publish --acccess=public"
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
