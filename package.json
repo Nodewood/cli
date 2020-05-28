@@ -1,6 +1,6 @@
 {
   "name": "@nodewood/cli",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "CLI for Nodewood SaaS starter kit",
   "main": "bin/cli.js",
   "repository": {
@@ -39,7 +39,6 @@
   },
   "homepage": "https://nodewood.com",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "publish": "npm publish --acccess=public"
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
