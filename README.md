@@ -6,6 +6,11 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.5.2
+
+- Update README with documentation link.
+- Updates package.json scripts.
+
 ### 0.5.1
 
 - Stores are now created in /stores subdirectory.
