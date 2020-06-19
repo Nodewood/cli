@@ -124,7 +124,14 @@ class AddCommand extends Command {
     };
 
     if (toAdd === TYPE_FEATURE) {
-      const name = get(args._, 2, false);
+      let name = get(args._, 2, false);
+
+      if (! name) {
+        console.log(chalk.red('You must enter a feature name.'));
+        return;
+      }
+
+      name = pluralize(camelCase(name));
 
       this.addFeature(name, {
         ...parsedArgs,
