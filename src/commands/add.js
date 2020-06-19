@@ -594,7 +594,7 @@ class AddCommand extends Command {
   addFormValidator(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/validator/Validator.js',
-      'app/features/<%= featureName %>/<%= fileName %>Validator.js',
+      'app/features/<%= featureName %>/lib/validators/<%= fileName %>Validator.js',
       'validator',
       feature,
       name,
@@ -614,7 +614,7 @@ class AddCommand extends Command {
   addModel(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/model/Model.js',
-      'app/features/<%= featureName %>/<%= fileName %>Model.js',
+      'app/features/<%= featureName %>/lib/models/<%= fileName %>Model.js',
       'model',
       feature,
       name,
