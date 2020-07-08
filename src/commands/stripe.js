@@ -1,6 +1,8 @@
 const chalk = require('chalk');
-// const { spawn } = require('child_process');
-const { get } = require('lodash');
+const stripe = require('stripe')(process.env.STRIPE_SK);
+const { resolve } = require('path');
+const { readJsonSync } = require('fs-extra');
+const { get, last, sortBy, invokeMap } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
 
@@ -25,6 +27,7 @@ class StripeCommand extends Command {
     console.log(chalk.yellow('\nUsage:'));
     console.log('  nodewood stripe diff    # Show the difference between your config and live plans');
     console.log('  nodewood stripe sync    # Update the live plans to match your config');
+    console.log('  nodewood stripe import  # Imports current live plans as a Nodewood config');
   }
 
   /**
@@ -38,26 +41,150 @@ class StripeCommand extends Command {
       return;
     }
 
-    const type = get(args._, 1);
-    if (! ['diff', 'sync'].includes(type)) {
-      console.log(chalk.red(`Invalid stripe command: '${type}'.`));
+    if (! get(process.env, 'STRIPE_SK')) {
+      console.log(chalk.red('Stripe Secret Key (STRIPE_SK) is not SET in .env file.'));
       return;
     }
 
+    // Load local and remote config for further processing
+    this.localConfig = this.getLocalConfig();
+    this.remoteConfig = await this.getRemoteConfig();
+
+    const type = get(args._, 1);
     if (type === 'diff') {
-      this.diff();
+      await this.diff();
+    }
+    else if (type === 'sync') {
+      await this.sync();
+    }
+    else if (type === 'import') {
+      await this.import();
     }
     else {
-      this.sync();
+      console.log(chalk.red(`Invalid stripe command: '${type}'.`));
     }
   }
 
-  diff() {
-    console.log('diff');
+  /**
+   * Build a list of Products and nested Prices from the local Nodewood configuration.
+   *
+   * Products and Prices are sorted by ID.
+   *
+   * @return {Object}
+   */
+  getLocalConfig() {
+    try {
+      let config = readJsonSync(resolve(process.cwd(), 'app/config/stripe.json'));
+      config.products = sortBy(config.products, 'id').map((product) => {
+        return {
+          ...product,
+          prices: sortBy(product.prices, 'id'),
+        };
+      });
+
+      return config;
+    }
+    catch (error) {
+      if (error.code === 'ENOENT') {
+        console.log(chalk.red(`Could not find '${chalk.cyan(resolve(process.cwd(), 'app/config/stripe.json'))}'.`));
+      }
+      else {
+        console.log(chalk.red(error.message));
+      }
+
+      throw error;
+    }
   }
 
-  sync() {
+  /**
+   * Build a list of Products and nested Prices from the project's Stripe account.
+   *
+   * Products and Prices are sorted by ID.
+   *
+   * @return {Object}
+   */
+  async getRemoteConfig() {
+    const stripeProductList = await this.getStripeProductList();
+    const stripePriceList = await this.getStripePriceList();
+
+    return {
+      products: sortBy(stripeProductList, 'id').map((product) => {
+        return {
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          active: product.active,
+          metadata: product.metadata,
+          prices: sortBy(stripePriceList, 'id')
+            .filter((price) => price.product === product.id)
+            .map((price) => {
+              return {
+                id: price.id,
+                nickname: price.nickname,
+                unit_amount: price.unit_amount,
+                currency: price.currency,
+                interval: price.recurring.interval,
+                interval_count: price.recurring.interval_count,
+                metadata: price.metadata,
+              };
+            }),
+        };
+      }),
+    };
+  }
+
+  /**
+   * Get the full, unaltered list of products from Stripe.
+   *
+   * @return {Array}
+   */
+  async getStripeProductList() {
+    let productList = [];
+    let params = {};
+    let response;
+
+    do {
+      response = await stripe.products.list(params); // eslint-disable-line no-await-in-loop
+      params.starting_after = get(last(response.data), 'id');
+
+      productList = productList.concat(response.data);
+    } while (response.has_more);
+
+    return productList;
+  }
+
+  /**
+   * Get the full, unaltered list of prices from Stripe.
+   *
+   * @return {Array}
+   */
+  async getStripePriceList() {
+    let priceList = [];
+    let params = {};
+    let response;
+
+    do {
+      response = await stripe.prices.list(params); // eslint-disable-line no-await-in-loop
+      params.starting_after = get(last(response.data), 'id');
+
+      priceList = priceList.concat(response.data);
+    } while (response.has_more);
+
+    return priceList;
+  }
+
+  async diff() {
+    console.log('diff');
+    console.log(this.localConfig);
+    console.log(this.remoteConfig);
+  }
+
+  async sync() {
     console.log('sync');
+  }
+
+  async import() {
+    console.log('import');
   }
 }
 
