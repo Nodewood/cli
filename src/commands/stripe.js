@@ -1,8 +1,8 @@
 const chalk = require('chalk');
 const stripe = require('stripe')(process.env.STRIPE_SK);
 const { resolve } = require('path');
-const { readJsonSync } = require('fs-extra');
-const { get, last, sortBy, invokeMap } = require('lodash');
+const { readJsonSync, writeJsonSync } = require('fs-extra');
+const { get, last, sortBy } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
 
@@ -174,9 +174,10 @@ class StripeCommand extends Command {
   }
 
   async diff() {
-    console.log('diff');
     console.log(this.localConfig);
     console.log(this.remoteConfig);
+
+
   }
 
   async sync() {
@@ -184,7 +185,15 @@ class StripeCommand extends Command {
   }
 
   async import() {
-    console.log('import');
+    writeJsonSync(
+      resolve(process.cwd(), 'app/config/stripe.json'),
+      this.remoteConfig,
+      {
+        spaces: 2,
+      },
+    );
+
+    console.log(`${chalk.cyan(resolve(process.cwd(), 'app/config/stripe.json'))} has been created from existing Stripe configuration.`);
   }
 }
 
