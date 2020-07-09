@@ -2,7 +2,7 @@ const chalk = require('chalk');
 const stripe = require('stripe')(process.env.STRIPE_SK);
 const { resolve } = require('path');
 const { readJsonSync, writeJsonSync } = require('fs-extra');
-const { get, last, sortBy } = require('lodash');
+const { get, last, sortBy, omit, isEqual } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
 
@@ -49,6 +49,8 @@ class StripeCommand extends Command {
     // Load local and remote config for further processing
     this.localConfig = this.getLocalConfig();
     this.remoteConfig = await this.getRemoteConfig();
+
+    this.calculateDifferences();
 
     const type = get(args._, 1);
     if (type === 'diff') {
@@ -173,11 +175,110 @@ class StripeCommand extends Command {
     return priceList;
   }
 
+  /**
+   * Calculate the differences between the local config and the remote config.
+   */
+  calculateDifferences() {
+    this.differences = {
+      products: {
+        new: this.calculateNewProductDifferences(),
+        updated: this.calculateUpdatedProductDifferences(),
+        deactivated: this.calculateDeactivatedProductDifferences(),
+      },
+      prices: {
+        new: this.calculateNewPriceDifferences(),
+        updated: this.calculateUpdatedPriceDifferences(),
+        deactivated: this.calculateDeactivatedPriceDifferences(),
+      },
+    };
+  }
+
+  /**
+   * Calculate the new products to be created on Stripe (& their prices).
+   *
+   * Any product in local configuration without an ID is new.
+   *
+   * @return {Array}
+   */
+  calculateNewProductDifferences() {
+    return this.localConfig.products.filter((product) => ! get(product, 'id'));
+  }
+
+  /**
+   * Calculate products to be updated on Stripe.
+   *
+   * @return {Array<String>} - The ID of the products to be updated.
+   */
+  calculateUpdatedProductDifferences() {
+    return this.localConfig.products.map((product) => omit(product, 'prices')).filter((product) => {
+      if (! get(product, 'id')) {
+        return false;
+      }
+
+      const remoteProduct = last(this.remoteConfig.products.filter(
+        (remote) => remote.id === product.id,
+      ));
+
+      if (! remoteProduct) {
+        console.log(chalk.yellow(`Local product '${chalk.cyan(product.name)}' has an ID but does not exist remotely.`));
+        console.log(chalk.yellow('This could be because you deleted a product on Stripe, but not from your config.'));
+        return false;
+      }
+
+      // Different if there is more than one difference between the keys
+      return Object.keys(product)
+        .filter((key) => ! isEqual(product[key], remoteProduct[key]))
+        .length > 0;
+    }).map((product) => product.id);
+  }
+
+  /**
+   * Calculate products to be deactivated on Stripe.
+   *
+   * Any remote product that does not have a local product or whose local product isn't active
+   * should be deactivated.
+   *
+   * @return {Array<String>} - The ID of the products to be deactivated.
+   */
+  calculateDeactivatedProductDifferences() {
+    return this.remoteConfig.products.filter((product) => {
+      const localProduct = last(this.localConfig.products.filter(
+        (local) => local.id === product.id,
+      ));
+
+      return (! localProduct || ! localProduct.active);
+    }).map((product) => product.id);
+  }
+
+  /**
+   * Calculate new prices for existing products to be created on Stripe.
+   *
+   * @return {Array}
+   */
+  calculateNewPriceDifferences() {
+
+  }
+
+  /**
+   * Calculate prices to be updated on Stripe.
+   *
+   * @return {Array}
+   */
+  calculateUpdatedPriceDifferences() {
+
+  }
+
+  /**
+   * Calculate prices to be deactivated on Stripe.
+   *
+   * @return {Array}
+   */
+  calculateDeactivatedPriceDifferences() {
+
+  }
+
   async diff() {
-    console.log(this.localConfig);
-    console.log(this.remoteConfig);
-
-
+    console.log(this.differences.products);
   }
 
   async sync() {
