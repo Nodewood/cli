@@ -2,7 +2,7 @@ const chalk = require('chalk');
 const stripe = require('stripe')(process.env.STRIPE_SK);
 const { resolve } = require('path');
 const { readJsonSync, writeJsonSync } = require('fs-extra');
-const { get, last, sortBy, omit, isEqual } = require('lodash');
+const { get, last, sortBy, omit, isEqual, flatMap } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
 
@@ -181,14 +181,14 @@ class StripeCommand extends Command {
   calculateDifferences() {
     this.differences = {
       products: {
-        new: this.calculateNewProductDifferences(),
-        updated: this.calculateUpdatedProductDifferences(),
-        deactivated: this.calculateDeactivatedProductDifferences(),
+        new: this.getNewProductDifferences(),
+        updated: this.getUpdatedProductDifferences(),
+        deactivated: this.getDeactivatedProductDifferences(),
       },
       prices: {
-        new: this.calculateNewPriceDifferences(),
-        updated: this.calculateUpdatedPriceDifferences(),
-        deactivated: this.calculateDeactivatedPriceDifferences(),
+        new: this.getNewPriceDifferences(),
+        updated: this.getUpdatedPriceDifferences(),
+        deactivated: this.getDeactivatedPriceDifferences(),
       },
     };
   }
@@ -200,16 +200,16 @@ class StripeCommand extends Command {
    *
    * @return {Array}
    */
-  calculateNewProductDifferences() {
+  getNewProductDifferences() {
     return this.localConfig.products.filter((product) => ! get(product, 'id'));
   }
 
   /**
    * Calculate products to be updated on Stripe.
    *
-   * @return {Array<String>} - The ID of the products to be updated.
+   * @return {Array<Object>} - The ID of the products to be updated.
    */
-  calculateUpdatedProductDifferences() {
+  getUpdatedProductDifferences() {
     return this.localConfig.products.map((product) => omit(product, 'prices')).filter((product) => {
       if (! get(product, 'id')) {
         return false;
@@ -229,7 +229,7 @@ class StripeCommand extends Command {
       return Object.keys(product)
         .filter((key) => ! isEqual(product[key], remoteProduct[key]))
         .length > 0;
-    }).map((product) => product.id);
+    });
   }
 
   /**
@@ -238,34 +238,70 @@ class StripeCommand extends Command {
    * Any remote product that does not have a local product or whose local product isn't active
    * should be deactivated.
    *
-   * @return {Array<String>} - The ID of the products to be deactivated.
+   * @return {Array<Object>} - The ID of the products to be deactivated.
    */
-  calculateDeactivatedProductDifferences() {
+  getDeactivatedProductDifferences() {
     return this.remoteConfig.products.filter((product) => {
       const localProduct = last(this.localConfig.products.filter(
         (local) => local.id === product.id,
       ));
 
       return (! localProduct || ! localProduct.active);
-    }).map((product) => product.id);
+    });
   }
 
   /**
    * Calculate new prices for existing products to be created on Stripe.
    *
-   * @return {Array}
+   * A new price is defined as a price without an ID in a local product that DOES have an ID.
+   *
+   * @return {Array<Object>}
    */
-  calculateNewPriceDifferences() {
+  getNewPriceDifferences() {
+    const existingProducts = this.localConfig.products.filter((product) => product.id);
 
+    const prices = flatMap(
+      existingProducts,
+      (product) => product.prices.map((price) => ({ product: product.id, ...price })),
+    );
+
+    return prices.filter((price) => ! price.id);
   }
 
   /**
    * Calculate prices to be updated on Stripe.
    *
-   * @return {Array}
+   * @return {Array<Object>}
    */
-  calculateUpdatedPriceDifferences() {
+  getUpdatedPriceDifferences() {
+    const remotePrices = flatMap(
+      this.remoteConfig.products,
+      (product) => product.prices.map((price) => ({ product: product.id, ...price })),
+    );
 
+    const existingProducts = this.localConfig.products.filter((product) => product.id);
+
+    const localPrices = flatMap(
+      existingProducts,
+      (product) => product.prices.map((price) => ({ product: product.id, ...price })),
+    );
+
+    const existingPrices = localPrices.filter((price) => price.id);
+
+    return existingPrices.filter((price) => {
+      const remotePrice = last(remotePrices.filter((remote) => remote.id === price.id));
+
+      if (! remotePrice) {
+        console.log(chalk.yellow(`Local price '${chalk.cyan(price.id)}' has an ID but does not exist remotely.`));
+        console.log(chalk.yellow('This could be because you deleted a price on Stripe, but not from your config.'));
+        return false;
+      }
+
+      // Different if there is more than one difference between the keys
+      return Object.keys(price)
+        .filter((key) => ! isEqual(price[key], remotePrice[key]))
+        .length > 0;
+    });
   }
 
   /**
@@ -273,12 +309,12 @@ class StripeCommand extends Command {
    *
    * @return {Array}
    */
-  calculateDeactivatedPriceDifferences() {
+  getDeactivatedPriceDifferences() {
 
   }
 
   async diff() {
-    console.log(this.differences.products);
+    console.log(this.differences.prices);
   }
 
   async sync() {
