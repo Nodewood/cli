@@ -83,6 +83,10 @@ class StripeCommand extends Command {
           prices: sortBy(product.prices, 'id'),
         };
       });
+      config.prices = flatMap(
+        config.products,
+        (product) => product.prices.map((price) => ({ product: product.id, ...price })),
+      ).filter((price) => price.product);
 
       return config;
     }
@@ -106,32 +110,24 @@ class StripeCommand extends Command {
    * @return {Object}
    */
   async getRemoteConfig() {
-    const stripeProductList = await this.getStripeProductList();
-    const stripePriceList = await this.getStripePriceList();
-
     return {
-      products: sortBy(stripeProductList, 'id').map((product) => {
-        return {
-          id: product.id,
-          name: product.name,
-          description: product.description,
-          active: product.active,
-          metadata: product.metadata,
-          prices: sortBy(stripePriceList, 'id')
-            .filter((price) => price.product === product.id)
-            .map((price) => {
-              return {
-                id: price.id,
-                nickname: price.nickname,
-                unit_amount: price.unit_amount,
-                currency: price.currency,
-                interval: price.recurring.interval,
-                interval_count: price.recurring.interval_count,
-                metadata: price.metadata,
-              };
-            }),
-        };
-      }),
+      products: sortBy(await this.getStripeProductList(), 'id').map((product) => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        active: product.active,
+        metadata: product.metadata,
+      })),
+      prices: sortBy(await this.getStripePriceList(), 'id').map((price) => ({
+        id: price.id,
+        nickname: price.nickname,
+        active: price.active,
+        unit_amount: price.unit_amount,
+        currency: price.currency,
+        interval: price.recurring.interval,
+        interval_count: price.recurring.interval_count,
+        metadata: price.metadata,
+      })),
     };
   }
 
@@ -221,7 +217,7 @@ class StripeCommand extends Command {
 
       if (! remoteProduct) {
         console.log(chalk.yellow(`Local product '${chalk.cyan(product.name)}' has an ID but does not exist remotely.`));
-        console.log(chalk.yellow('This could be because you deleted a product on Stripe, but not from your config.'));
+        console.log(chalk.yellow('This could be because you deleted a product on Stripe, but not from your config.\n'));
         return false;
       }
 
@@ -258,14 +254,7 @@ class StripeCommand extends Command {
    * @return {Array<Object>}
    */
   getNewPriceDifferences() {
-    const existingProducts = this.localConfig.products.filter((product) => product.id);
-
-    const prices = flatMap(
-      existingProducts,
-      (product) => product.prices.map((price) => ({ product: product.id, ...price })),
-    );
-
-    return prices.filter((price) => ! price.id);
+    return this.localConfig.prices.filter((price) => ! price.id);
   }
 
   /**
@@ -274,26 +263,12 @@ class StripeCommand extends Command {
    * @return {Array<Object>}
    */
   getUpdatedPriceDifferences() {
-    const remotePrices = flatMap(
-      this.remoteConfig.products,
-      (product) => product.prices.map((price) => ({ product: product.id, ...price })),
-    );
-
-    const existingProducts = this.localConfig.products.filter((product) => product.id);
-
-    const localPrices = flatMap(
-      existingProducts,
-      (product) => product.prices.map((price) => ({ product: product.id, ...price })),
-    );
-
-    const existingPrices = localPrices.filter((price) => price.id);
-
-    return existingPrices.filter((price) => {
-      const remotePrice = last(remotePrices.filter((remote) => remote.id === price.id));
+    return this.localConfig.prices.filter((price) => price.id).filter((price) => {
+      const remotePrice = last(this.remoteConfig.prices.filter((remote) => remote.id === price.id));
 
       if (! remotePrice) {
         console.log(chalk.yellow(`Local price '${chalk.cyan(price.id)}' has an ID but does not exist remotely.`));
-        console.log(chalk.yellow('This could be because you deleted a price on Stripe, but not from your config.'));
+        console.log(chalk.yellow('This could be because you deleted a price on Stripe, but not from your config.\n'));
         return false;
       }
 
@@ -310,7 +285,13 @@ class StripeCommand extends Command {
    * @return {Array}
    */
   getDeactivatedPriceDifferences() {
+    return this.remoteConfig.prices.filter((price) => {
+      const localPrice = last(this.localConfig.prices.filter(
+        (local) => local.id === price.id,
+      ));
 
+      return (! localPrice || ! localPrice.active);
+    });
   }
 
   async diff() {
