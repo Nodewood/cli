@@ -204,9 +204,69 @@ function getDeactivatedEntries(localEntries, remoteEntries) {
   });
 }
 
+/**
+ * Get the full name of a product, including its description.
+ *
+ * @param {Object} product - The product to get the full name for.
+ *
+ * @return {String}
+ */
+function getProductFullName(product) {
+  return `${chalk.cyan(product.name)} - (${chalk.cyan(product.description || 'No description')})`;
+}
+
+/**
+ * Gets the full name of a price, including its cost.
+ *
+ * @param {Object} price - The price to get the full name for.
+ *
+ * @return {String}
+ */
+function getPriceFullName(price) {
+  const formattedUnitPrice = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: price.currency,
+  }).format(price.unit_amount / 100);
+  const formattedInterval = price.interval_count > 1
+    ? `every ${price.interval_count} ${price.interval}s`
+    : `/ ${price.interval}`;
+
+  const description = `${formattedUnitPrice} ${price.currency.toUpperCase()} ${formattedInterval}`;
+
+  return `${chalk.cyan(price.nickname || 'No nickname')} - (${chalk.cyan(description)})`;
+}
+
+/**
+ * Get the differences between an entity and its remote entity.
+ *
+ * @param {Object} entity - The entity to get the differences for.
+ * @param {Array} remoteEntities - The remote entities to find the remote entity from.
+ *
+ * @return {Array<Object>}
+ */
+function getEntityDifferences(entity, remoteEntities) {
+  const remoteEntity = last(remoteEntities.filter((remote) => remote.id === entity.id));
+  let differences = [];
+
+  Object.keys(entity).forEach((key) => {
+    if (! isEqual(entity[key], remoteEntity[key])) {
+      differences.push({
+        key,
+        from: remoteEntity[key],
+        to: entity[key],
+      });
+    }
+  });
+
+  return differences;
+}
+
 module.exports = {
   getLocalConfig,
   writeLocalConfig,
   getRemoteConfig,
   calculateDifferences,
+  getProductFullName,
+  getPriceFullName,
+  getEntityDifferences,
 };

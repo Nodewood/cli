@@ -1,6 +1,6 @@
 const chalk = require('chalk');
 const { resolve } = require('path');
-const { get } = require('lodash');
+const { get, omit } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
 const {
@@ -8,6 +8,9 @@ const {
   writeLocalConfig,
   getRemoteConfig,
   calculateDifferences,
+  getProductFullName,
+  getPriceFullName,
+  getEntityDifferences,
 } = require('../lib/stripe');
 
 class StripeCommand extends Command {
@@ -69,15 +72,68 @@ class StripeCommand extends Command {
     }
   }
 
+  /**
+   * Display difference between local configuration and remote configuration.
+   */
   async diff() {
+    console.log('Difference between your local config and existing Stripe config:\n');
+
     const differences = calculateDifferences(this.localConfig, this.remoteConfig);
-    console.log(differences.prices);
+
+    // New products
+    differences.products.new.forEach((product) => {
+      console.log(chalk.green(`New product: ${getProductFullName(product)}`));
+      product.prices.forEach((price) => {
+        console.log(chalk.green(`  New price: ${getPriceFullName(price)}`));
+      });
+    });
+
+    // Updated products
+    differences.products.updated.forEach((product) => {
+      console.log(chalk.green(`Updated product: ${getProductFullName(product)}`));
+
+      getEntityDifferences(omit(product, 'prices'), this.remoteConfig.products)
+        .forEach((difference) => {
+          console.log(`  Changed ${difference.key}: '${chalk.red(difference.from)}' to '${chalk.green(difference.to)}'`);
+        });
+    });
+
+    // Deactivated products
+    differences.products.deactivated.forEach((product) => {
+      console.log(chalk.red(`Deactivated product: ${getProductFullName(product)}`));
+    });
+
+    // New prices
+    differences.prices.new.forEach((price) => {
+      console.log(chalk.green(`New price: ${getPriceFullName(price)}`));
+    });
+
+    // Updated prices
+    differences.prices.updated.forEach((price) => {
+      console.log(chalk.green(`Updated price: ${getPriceFullName(price)}`));
+
+      getEntityDifferences(omit(price, 'product'), this.remoteConfig.prices)
+        .forEach((difference) => {
+          console.log(`  Changed ${difference.key}: '${chalk.red(difference.from)}' to '${chalk.green(difference.to)}'`);
+        });
+    });
+
+    // Deactivated prices
+    differences.prices.deactivated.forEach((price) => {
+      console.log(chalk.red(`Deactivated price: ${getPriceFullName(price)}`));
+    });
   }
 
+  /**
+   * Ask user to confirm differences, then update remote configuration to match local one.
+   */
   async sync() {
     console.log('sync');
   }
 
+  /**
+   * Import from remote configuration and write into local configuration.
+   */
   async import() {
     writeLocalConfig(this.remoteConfig);
 
