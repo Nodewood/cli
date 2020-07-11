@@ -1,4 +1,5 @@
 const chalk = require('chalk');
+const { prompt } = require('inquirer');
 const { resolve } = require('path');
 const { get, omit } = require('lodash');
 const { Command } = require('../lib/Command');
@@ -11,7 +12,23 @@ const {
   getProductFullName,
   getPriceFullName,
   getEntityDifferences,
+  applyChanges,
 } = require('../lib/stripe');
+
+/**
+ * Confirm if the user wants to apply changes.
+ *
+ * @return {boolean}
+ */
+async function confirmChanges() {
+  const answers = await prompt({
+    name: 'confirm',
+    type: 'confirm',
+    message: '\nDo you wish to upgrade apply these changes?',
+  });
+
+  return answers.confirm;
+}
 
 class StripeCommand extends Command {
   /**
@@ -35,6 +52,9 @@ class StripeCommand extends Command {
     console.log('  nodewood stripe diff    # Show the difference between your config and live plans');
     console.log('  nodewood stripe sync    # Update the live plans to match your config');
     console.log('  nodewood stripe import  # Imports current live plans as a Nodewood config');
+
+    console.log(chalk.yellow('\nOptions:'));
+    console.log(`  ${chalk.cyan('--no-confirm')}     # Do not confirm before syncing`);
   }
 
   /**
@@ -62,7 +82,7 @@ class StripeCommand extends Command {
       await this.diff();
     }
     else if (type === 'sync') {
-      await this.sync();
+      await this.sync({ confirm: get(args, 'confirm', true) });
     }
     else if (type === 'import') {
       await this.import();
@@ -74,9 +94,11 @@ class StripeCommand extends Command {
 
   /**
    * Display difference between local configuration and remote configuration.
+   *
+   * @param {String} preamble - Text to display before showing changes.
    */
-  async diff() {
-    console.log('Difference between your local config and existing Stripe config:\n');
+  async diff(preamble = 'Difference between your local config and existing Stripe config:\n') {
+    console.log(preamble);
 
     const differences = calculateDifferences(this.localConfig, this.remoteConfig);
 
@@ -126,9 +148,21 @@ class StripeCommand extends Command {
 
   /**
    * Ask user to confirm differences, then update remote configuration to match local one.
+   *
+   * @param {Boolean} confirm - If the user must first confirm changes.
    */
-  async sync() {
-    console.log('sync');
+  async sync({ confirm }) {
+    this.diff('The following changes will be applied to your Stripe configuration:\n');
+
+    if (confirm && ! await confirmChanges()) {
+      return;
+    }
+
+    await applyChanges(calculateDifferences(this.localConfig, this.remoteConfig));
+
+    // Update local config to match new remote config
+    // const newRemoteConfig = await getRemoteConfig();
+    // writeLocalConfig(newRemoteConfig);
   }
 
   /**

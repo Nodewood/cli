@@ -1,8 +1,10 @@
 const chalk = require('chalk');
+const { Spinner } = require('clui');
 const stripe = require('stripe')(process.env.STRIPE_SK);
 const { readJsonSync, writeJsonSync } = require('fs-extra');
 const { get, last, sortBy, omit, isEqual, flatMap } = require('lodash');
 const { resolve } = require('path');
+const { IncrementableProgress } = require('./ui');
 
 /**
  * Build a list of Products and nested Prices from the local Nodewood configuration.
@@ -57,15 +59,25 @@ function writeLocalConfig(config) {
  * @return {Object}
  */
 async function getRemoteConfig() {
+  const loadingSpinner = new Spinner('Loading remote configuration from Stripe...');
+
+  let productList;
+  let priceList;
+
+  loadingSpinner.start();
+  productList = await getStripeProductList();
+  priceList = await getStripePriceList();
+  loadingSpinner.stop();
+
   return {
-    products: sortBy(await getStripeProductList(), 'id').map((product) => ({
+    products: sortBy(productList, 'id').map((product) => ({
       id: product.id,
       name: product.name,
       description: product.description,
       active: product.active,
       metadata: product.metadata,
     })),
-    prices: sortBy(await getStripePriceList(), 'id').map((price) => ({
+    prices: sortBy(priceList, 'id').map((price) => ({
       id: price.id,
       nickname: price.nickname,
       active: price.active,
@@ -261,6 +273,54 @@ function getEntityDifferences(entity, remoteEntities) {
   return differences;
 }
 
+/**
+ * Applies the changes to the remote Stripe configuration.
+ *
+ * @param {Object} differences - The differences to apply.
+ */
+async function applyChanges(differences) {
+  const productDifferences = Object.keys(differences.products)
+    .reduce((total, key) => total + differences.products[key].length, 0);
+  const newProductPriceDifferences = differences.products.new
+    .reduce((total, product) => total + product.prices.length, 0);
+  const priceDifferences = Object.keys(differences.products)
+    .reduce((total, key) => total + differences.prices[key].length, 0);
+
+  const totalDifferences = productDifferences + newProductPriceDifferences + priceDifferences;
+
+  const changesProgressBar = new IncrementableProgress(totalDifferences);
+  changesProgressBar.display({ label: 'Applying changes: ' });
+
+  // New products
+  await differences.products.new.forEach(async (product) => {
+    // const createdProduct = await stripe.products.create(omit(product, 'prices'));
+    changesProgressBar.increment({ label: 'Applying changes: ' });
+
+    await product.prices.forEach(async (price) => {
+      // await stripe.prices.create({
+      //   product: createdProduct.id,
+      //   nickname: price.nickname,
+      //   active: price.active,
+      //   unit_amount: price.unit_amount,
+      //   currency: price.currency,
+      //   metadata: price.metadata,
+      //   recurring: {
+      //     interval: price.interval,
+      //     interval_count: price.interval_count,
+      //   },
+      // });
+    });
+
+    changesProgressBar.increment({ label: 'Applying changes: ' });
+  });
+
+  // Updated products
+  // Deactivated products
+  // New prices
+  // Updated prices
+  // Deactivated prices
+}
+
 module.exports = {
   getLocalConfig,
   writeLocalConfig,
@@ -269,4 +329,5 @@ module.exports = {
   getProductFullName,
   getPriceFullName,
   getEntityDifferences,
+  applyChanges,
 };
