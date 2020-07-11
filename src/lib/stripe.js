@@ -42,6 +42,20 @@ function getLocalConfig() {
 }
 
 function writeLocalConfig(config) {
+  // Add prices to products
+  config.prices.forEach((price) => {
+    console.log(price);
+    config.products.map((product) => {
+      if (price.product === product.id) {
+        product.prices = get(product, 'prices', []).concat([omit(price, 'product')]);
+      }
+      return product;
+    });
+  });
+
+  // Remove prices
+  delete config.prices;
+
   writeJsonSync(
     resolve(process.cwd(), 'app/config/stripe.json'),
     config,
@@ -79,6 +93,7 @@ async function getRemoteConfig() {
     })),
     prices: sortBy(priceList, 'id').map((price) => ({
       id: price.id,
+      product: price.product,
       nickname: price.nickname,
       active: price.active,
       unit_amount: price.unit_amount,
@@ -107,7 +122,7 @@ async function getStripeProductList() {
     productList = productList.concat(response.data);
   } while (response.has_more);
 
-  return productList;
+  return productList.filter((product) => product.active);
 }
 
 /**
@@ -127,7 +142,7 @@ async function getStripePriceList() {
     priceList = priceList.concat(response.data);
   } while (response.has_more);
 
-  return priceList;
+  return priceList.filter((price) => price.active);
 }
 
 /**
@@ -274,11 +289,47 @@ function getEntityDifferences(entity, remoteEntities) {
 }
 
 /**
- * Applies the changes to the remote Stripe configuration.
+ * Convert a product from our local config format to the format Stripe's API is expecting.
  *
- * @param {Object} differences - The differences to apply.
+ * @param {Object} product - The product in our local config format.
+ *
+ * @return {Object}
  */
-async function applyChanges(differences) {
+function convertStripeProduct(product) {
+  return omit(product, 'prices');
+}
+
+/**
+ * Convert a price from our local config format to the format Stripe's API is expecting.
+ *
+ * @param {Object} price - The price in our local config format.
+ * @param {String} productId - The ID of the product this price belongs to.
+ *
+ * @return {Object}
+ */
+function convertStripePrice(price, productId) {
+  return {
+    product: productId,
+    nickname: price.nickname,
+    active: price.active,
+    unit_amount: price.unit_amount,
+    currency: price.currency,
+    metadata: price.metadata,
+    recurring: {
+      interval: price.interval,
+      interval_count: price.interval_count,
+    },
+  };
+}
+
+/**
+ * Count the total differences in a difference object.
+ *
+ * @param {Object} differences - The difference object to count differences in.
+ *
+ * @return {Number}
+ */
+function countDifferences(differences) {
   const productDifferences = Object.keys(differences.products)
     .reduce((total, key) => total + differences.products[key].length, 0);
   const newProductPriceDifferences = differences.products.new
@@ -286,39 +337,70 @@ async function applyChanges(differences) {
   const priceDifferences = Object.keys(differences.products)
     .reduce((total, key) => total + differences.prices[key].length, 0);
 
-  const totalDifferences = productDifferences + newProductPriceDifferences + priceDifferences;
+  return productDifferences + newProductPriceDifferences + priceDifferences;
+}
 
+/**
+ * Applies the changes to the remote Stripe configuration.
+ *
+ * @param {Object} differences - The differences to apply.
+ */
+async function applyChanges(differences) {
+  // For simplicity's sake and error handling, we use for...of loops in this function,
+  // which requires relaxing linting for a bit:
+  /* eslint-disable no-restricted-syntax, no-await-in-loop */
+
+  const totalDifferences = countDifferences(differences);
   const changesProgressBar = new IncrementableProgress(totalDifferences);
   changesProgressBar.display({ label: 'Applying changes: ' });
 
   // New products
-  await differences.products.new.forEach(async (product) => {
-    // const createdProduct = await stripe.products.create(omit(product, 'prices'));
+  for (const product of differences.products.new) {
+    const createdProduct = await stripe.products.create(convertStripeProduct(product));
     changesProgressBar.increment({ label: 'Applying changes: ' });
 
     await product.prices.forEach(async (price) => {
-      // await stripe.prices.create({
-      //   product: createdProduct.id,
-      //   nickname: price.nickname,
-      //   active: price.active,
-      //   unit_amount: price.unit_amount,
-      //   currency: price.currency,
-      //   metadata: price.metadata,
-      //   recurring: {
-      //     interval: price.interval,
-      //     interval_count: price.interval_count,
-      //   },
-      // });
+      await stripe.prices.create(convertStripePrice(price, createdProduct.id));
     });
 
     changesProgressBar.increment({ label: 'Applying changes: ' });
-  });
+  }
 
   // Updated products
+  for (const product of differences.products.updated) {
+    await stripe.products.update(product.id, omit(product, 'id'));
+    changesProgressBar.increment({ label: 'Applying changes: ' });
+  }
+
   // Deactivated products
+  for (const product of differences.products.deactivated) {
+    await stripe.products.update(product.id, { active: false });
+    changesProgressBar.increment({ label: 'Applying changes: ' });
+  }
+
   // New prices
+  for (const price of differences.prices.new) {
+    await stripe.prices.create(convertStripePrice(price, price.product));
+    changesProgressBar.increment({ label: 'Applying changes: ' });
+  }
+
   // Updated prices
+  for (const price of differences.prices.updated) {
+    await stripe.prices.update(price.id, {
+      nickanme: price.nickanme,
+      active: price.active,
+      metadata: price.metadata,
+    });
+    changesProgressBar.increment({ label: 'Applying changes: ' });
+  }
+
   // Deactivated prices
+  for (const price of differences.prices.deactivated) {
+    await stripe.prices.update(price.id, { active: false });
+    changesProgressBar.increment({ label: 'Applying changes: ' });
+  }
+
+  /* eslint-enable no-restricted-syntax, no-await-in-loop */
 }
 
 module.exports = {
@@ -329,5 +411,6 @@ module.exports = {
   getProductFullName,
   getPriceFullName,
   getEntityDifferences,
+  countDifferences,
   applyChanges,
 };

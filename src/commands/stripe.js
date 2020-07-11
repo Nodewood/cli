@@ -12,6 +12,7 @@ const {
   getProductFullName,
   getPriceFullName,
   getEntityDifferences,
+  countDifferences,
   applyChanges,
 } = require('../lib/stripe');
 
@@ -97,10 +98,14 @@ class StripeCommand extends Command {
    *
    * @param {String} preamble - Text to display before showing changes.
    */
-  async diff(preamble = 'Difference between your local config and existing Stripe config:\n') {
-    console.log(preamble);
-
+  async diff(preamble = 'Differences between your local config and existing Stripe config:\n') {
     const differences = calculateDifferences(this.localConfig, this.remoteConfig);
+    if (countDifferences(differences) === 0) {
+      console.log('No differences between your local config and existing Stripe config.');
+      return;
+    }
+
+    console.log(preamble);
 
     // New products
     differences.products.new.forEach((product) => {
@@ -152,17 +157,17 @@ class StripeCommand extends Command {
    * @param {Boolean} confirm - If the user must first confirm changes.
    */
   async sync({ confirm }) {
+    const differences = calculateDifferences(this.localConfig, this.remoteConfig);
     this.diff('The following changes will be applied to your Stripe configuration:\n');
 
-    if (confirm && ! await confirmChanges()) {
+    if (countDifferences(differences) === 0 || (confirm && ! await confirmChanges())) {
       return;
     }
 
-    await applyChanges(calculateDifferences(this.localConfig, this.remoteConfig));
+    await applyChanges(differences);
 
     // Update local config to match new remote config
-    // const newRemoteConfig = await getRemoteConfig();
-    // writeLocalConfig(newRemoteConfig);
+    writeLocalConfig(await getRemoteConfig());
   }
 
   /**
