@@ -6,6 +6,20 @@ const { get, last, sortBy, omit, isEqual, flatMap } = require('lodash');
 const { resolve } = require('path');
 const { IncrementableProgress } = require('./ui');
 
+const ALLOWED_UPDATE_KEYS = {
+  product: [
+    'active',
+    'metadata',
+    'nickname',
+  ],
+  price: [
+    'active',
+    'description',
+    'metadata',
+    'nickname',
+  ],
+};
+
 /**
  * Build a list of Products and nested Prices from the local Nodewood configuration.
  *
@@ -205,9 +219,15 @@ function getUpdatedEntries(localEntries, remoteEntries, entryName) {
     }
 
     // Different if there is more than one difference between the keys
-    return Object.keys(localEntry)
-      .filter((key) => ! isEqual(localEntry[key], remoteEntry[key]))
-      .length > 0;
+    const differences = Object.keys(localEntry)
+      .filter((key) => ! isEqual(localEntry[key], remoteEntry[key]));
+
+    differences.filter((key) => ! ALLOWED_UPDATE_KEYS[entryName].includes(key))
+      .forEach((key) => {
+        console.log(chalk.yellow(`Local ${entryName} '${chalk.cyan(localEntry.id)}' has an updated ${key}, which cannot be modified and will be ignored.`));
+      });
+
+    return differences.length > 0;
   });
 }
 
