@@ -44,7 +44,6 @@ function getLocalConfig() {
 function writeLocalConfig(config) {
   // Add prices to products
   config.prices.forEach((price) => {
-    console.log(price);
     config.products.map((product) => {
       if (price.product === product.id) {
         product.prices = get(product, 'prices', []).concat([omit(price, 'product')]);
