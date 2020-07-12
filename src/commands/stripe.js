@@ -80,9 +80,11 @@ class StripeCommand extends Command {
 
     const type = get(args._, 1);
     if (type === 'diff') {
+      this.differences = calculateDifferences(this.localConfig, this.remoteConfig);
       await this.diff();
     }
     else if (type === 'sync') {
+      this.differences = calculateDifferences(this.localConfig, this.remoteConfig);
       await this.sync({ confirm: get(args, 'confirm', true) });
     }
     else if (type === 'import') {
@@ -99,8 +101,7 @@ class StripeCommand extends Command {
    * @param {String} preamble - Text to display before showing changes.
    */
   async diff(preamble = 'Differences between your local config and existing Stripe config:\n') {
-    const differences = calculateDifferences(this.localConfig, this.remoteConfig);
-    if (countDifferences(differences) === 0) {
+    if (countDifferences(this.differences) === 0) {
       console.log('No differences between your local config and existing Stripe config.');
       return;
     }
@@ -108,7 +109,7 @@ class StripeCommand extends Command {
     console.log(preamble);
 
     // New products
-    differences.products.new.forEach((product) => {
+    this.differences.products.new.forEach((product) => {
       console.log(chalk.green(`New product: ${getProductFullName(product)}`));
       product.prices.forEach((price) => {
         console.log(chalk.green(`  New price: ${getPriceFullName(price)}`));
@@ -116,7 +117,7 @@ class StripeCommand extends Command {
     });
 
     // Updated products
-    differences.products.updated.forEach((product) => {
+    this.differences.products.updated.forEach((product) => {
       console.log(chalk.green(`Updated product: ${getProductFullName(product)}`));
 
       getEntityDifferences(omit(product, 'prices'), this.remoteConfig.products)
@@ -126,17 +127,17 @@ class StripeCommand extends Command {
     });
 
     // Deactivated products
-    differences.products.deactivated.forEach((product) => {
+    this.differences.products.deactivated.forEach((product) => {
       console.log(chalk.red(`Deactivated product: ${getProductFullName(product)}`));
     });
 
     // New prices
-    differences.prices.new.forEach((price) => {
+    this.differences.prices.new.forEach((price) => {
       console.log(chalk.green(`New price: ${getPriceFullName(price)}`));
     });
 
     // Updated prices
-    differences.prices.updated.forEach((price) => {
+    this.differences.prices.updated.forEach((price) => {
       console.log(chalk.green(`Updated price: ${getPriceFullName(price)}`));
 
       getEntityDifferences(omit(price, 'product'), this.remoteConfig.prices)
@@ -146,7 +147,7 @@ class StripeCommand extends Command {
     });
 
     // Deactivated prices
-    differences.prices.deactivated.forEach((price) => {
+    this.differences.prices.deactivated.forEach((price) => {
       console.log(chalk.red(`Deactivated price: ${getPriceFullName(price)}`));
     });
   }
@@ -157,14 +158,13 @@ class StripeCommand extends Command {
    * @param {Boolean} confirm - If the user must first confirm changes.
    */
   async sync({ confirm }) {
-    const differences = calculateDifferences(this.localConfig, this.remoteConfig);
     this.diff('The following changes will be applied to your Stripe configuration:\n');
 
-    if (countDifferences(differences) === 0 || (confirm && ! await confirmChanges())) {
+    if (countDifferences(this.differences) === 0 || (confirm && ! await confirmChanges())) {
       return;
     }
 
-    await applyChanges(differences);
+    await applyChanges(this.differences);
 
     // Update local config to match new remote config
     writeLocalConfig(await getRemoteConfig());

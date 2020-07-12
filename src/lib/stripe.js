@@ -222,12 +222,14 @@ function getUpdatedEntries(localEntries, remoteEntries, entryName) {
     const differences = Object.keys(localEntry)
       .filter((key) => ! isEqual(localEntry[key], remoteEntry[key]));
 
+    // Print a warning for all keys attempting to be changed that cannot be
     differences.filter((key) => ! ALLOWED_UPDATE_KEYS[entryName].includes(key))
       .forEach((key) => {
-        console.log(chalk.yellow(`Local ${entryName} '${chalk.cyan(localEntry.id)}' has an updated ${key}, which cannot be modified and will be ignored.`));
+        console.log(chalk.yellow(`Local ${entryName} '${chalk.cyan(localEntry.id)}' has a modified ${key}, which cannot be modified and will be ignored.`));
       });
 
-    return differences.length > 0;
+    // Entity is updated only if any of the keys allowed to be updated are modified
+    return differences.filter((key) => ALLOWED_UPDATE_KEYS[entryName].includes(key)).length > 0;
   });
 }
 
