@@ -6,6 +6,10 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.6.0
+
+- Adds `nodewood stripe` command.
+
 ### 0.5.2
 
 - Update README with documentation link.
