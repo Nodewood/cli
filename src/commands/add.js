@@ -124,7 +124,14 @@ class AddCommand extends Command {
     };
 
     if (toAdd === TYPE_FEATURE) {
-      const name = get(args._, 2, false);
+      let name = get(args._, 2, false);
+
+      if (! name) {
+        console.log(chalk.red('You must enter a feature name.'));
+        return;
+      }
+
+      name = pluralize(camelCase(name));
 
       this.addFeature(name, {
         ...parsedArgs,
@@ -594,7 +601,7 @@ class AddCommand extends Command {
   addFormValidator(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/validator/Validator.js',
-      'app/features/<%= featureName %>/<%= fileName %>Validator.js',
+      'app/features/<%= featureName %>/lib/validators/<%= fileName %>Validator.js',
       'validator',
       feature,
       name,
@@ -614,7 +621,7 @@ class AddCommand extends Command {
   addModel(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/model/Model.js',
-      'app/features/<%= featureName %>/<%= fileName %>Model.js',
+      'app/features/<%= featureName %>/lib/models/<%= fileName %>Model.js',
       'model',
       feature,
       name,
