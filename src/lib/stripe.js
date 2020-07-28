@@ -5,6 +5,7 @@ const { readJsonSync, writeJsonSync } = require('fs-extra');
 const { get, last, sortBy, omit, isEqual, flatMap } = require('lodash');
 const { resolve } = require('path');
 const { IncrementableProgress } = require('./ui');
+const { countries } = require(resolve(process.cwd(), 'wood/config/geography'));
 
 const ALLOWED_UPDATE_KEYS = {
   product: [
@@ -40,6 +41,20 @@ function getLocalConfig() {
       config.products,
       (product) => product.prices.map((price) => ({ product: product.id, ...price })),
     ).filter((price) => price.product);
+
+    config.taxes = Object.keys(config.taxes.countries).flatMap(
+      (countryKey) => config.taxes.countries[countryKey].map((taxConfig) => ({
+        jurisdiction: countries[countryKey],
+        ...taxConfig,
+      })),
+    ).concat(Object.keys(config.taxes.states).flatMap(
+      (countryKey) => Object.keys(config.taxes.states[countryKey]).flatMap(
+        (stateKey) => config.taxes.states[countryKey][stateKey].map((taxConfig) => ({
+          jurisdiction: `${stateKey}, ${countries[countryKey]}`,
+          ...taxConfig,
+        })),
+      ),
+    ));
 
     return config;
   }
@@ -90,10 +105,12 @@ async function getRemoteConfig() {
 
   let productList;
   let priceList;
+  let taxList;
 
   loadingSpinner.start();
   productList = await getStripeProductList();
   priceList = await getStripePriceList();
+  taxList = await getStripeTaxList();
   loadingSpinner.stop();
 
   return {
@@ -114,6 +131,16 @@ async function getRemoteConfig() {
       interval: price.recurring.interval,
       interval_count: price.recurring.interval_count,
       metadata: price.metadata,
+    })),
+    taxes: sortBy(taxList, 'id').map((tax) => ({
+      id: tax.id,
+      display_name: tax.display_name,
+      description: tax.description,
+      active: tax.active,
+      inclusive: tax.inclusive,
+      percentage: tax.percentage,
+      metadata: tax.metadata,
+      jurisdiction: tax.jurisdiction,
     })),
   };
 }
@@ -159,6 +186,26 @@ async function getStripePriceList() {
 }
 
 /**
+ * Get the full, unaltered list of taxes from Stripe.
+ *
+ * @return {Array}
+ */
+async function getStripeTaxList() {
+  let taxList = [];
+  let params = {};
+  let response;
+
+  do {
+    response = await stripe.taxRates.list(params); // eslint-disable-line no-await-in-loop
+    params.starting_after = get(last(response.data), 'id');
+
+    taxList = taxList.concat(response.data);
+  } while (response.has_more);
+
+  return taxList.filter((tax) => tax.active);
+}
+
+/**
  * Calculate the differences between the local config and the remote config.
  *
  * @return {Object}
@@ -172,6 +219,9 @@ function calculateDifferences(localConfig, remoteConfig) {
   // When checking local prices for updates, skip new prices
   const localPricesForUpdateCheck = localConfig.prices.filter((price) => price.id);
 
+  // When checking local taxes for updates, skip new taxes
+  const localTaxesForUpdateCheck = localConfig.taxes.filter((tax) => tax.id);
+
   return {
     products: {
       new: getNewEntries(localConfig.products),
@@ -182,6 +232,11 @@ function calculateDifferences(localConfig, remoteConfig) {
       new: getNewEntries(localConfig.prices),
       updated: getUpdatedEntries(localPricesForUpdateCheck, remoteConfig.prices, 'price'),
       deactivated: getDeactivatedEntries(localConfig.prices, remoteConfig.prices),
+    },
+    taxes: {
+      new: getNewEntries(localConfig.taxes),
+      updated: getUpdatedEntries(localTaxesForUpdateCheck, remoteConfig.taxes, 'tax'),
+      deactivated: getDeactivatedEntries(localConfig.taxes, remoteConfig.taxes),
     },
   };
 }
@@ -285,6 +340,17 @@ function getPriceFullName(price) {
 }
 
 /**
+ * Gets the full name of a tax, including percentage.
+ *
+ * @param {Object} tax - The tax to get the full name for
+ *
+ * @return {String}
+ */
+function getTaxFullName(tax) {
+  return `${chalk.cyan(tax.display_name)} (${chalk.cyan(`${tax.jurisdiction}`)}): ${chalk.cyan(`${tax.percentage}%`)}`;
+}
+
+/**
  * Get the differences between an entity and its remote entity.
  *
  * @param {Object} entity - The entity to get the differences for.
@@ -344,6 +410,17 @@ function convertStripePrice(price, productId) {
 }
 
 /**
+ * Convert a tax from our local config format to the format Stripe's API is expecting.
+ *
+ * @param {Object} tax - The tax in our local config format.
+ *
+ * @return {Object}
+ */
+function convertStripeTax(tax) {
+  return tax;
+}
+
+/**
  * Count the total differences in a difference object.
  *
  * @param {Object} differences - The difference object to count differences in.
@@ -357,8 +434,10 @@ function countDifferences(differences) {
     .reduce((total, product) => total + product.prices.length, 0);
   const priceDifferences = Object.keys(differences.products)
     .reduce((total, key) => total + differences.prices[key].length, 0);
+  const taxDifferences = Object.keys(differences.taxes)
+    .reduce((total, key) => total + differences.taxes[key].length, 0);
 
-  return productDifferences + newProductPriceDifferences + priceDifferences;
+  return productDifferences + newProductPriceDifferences + priceDifferences + taxDifferences;
 }
 
 /**
@@ -421,6 +500,15 @@ async function applyChanges(differences) {
     changesProgressBar.increment({ label: 'Applying changes: ' });
   }
 
+  // New taxes
+  for (const tax of differences.taxes.new) {
+    await stripe.taxRates.create(convertStripeTax(tax));
+    changesProgressBar.increment({ label: 'Applying changes: ' });
+  }
+
+  // Updated taxes
+  // Deactivated taxes
+
   /* eslint-enable no-restricted-syntax, no-await-in-loop */
 }
 
@@ -431,6 +519,7 @@ module.exports = {
   calculateDifferences,
   getProductFullName,
   getPriceFullName,
+  getTaxFullName,
   getEntityDifferences,
   countDifferences,
   applyChanges,

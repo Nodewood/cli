@@ -11,6 +11,7 @@ const {
   calculateDifferences,
   getProductFullName,
   getPriceFullName,
+  getTaxFullName,
   getEntityDifferences,
   countDifferences,
   applyChanges,
@@ -149,6 +150,26 @@ class StripeCommand extends Command {
     // Deactivated prices
     this.differences.prices.deactivated.forEach((price) => {
       console.log(chalk.red(`Deactivated price: ${getPriceFullName(price)}`));
+    });
+
+    // New taxes
+    this.differences.taxes.new.forEach((tax) => {
+      console.log(chalk.green(`New tax: ${getTaxFullName(tax)}`));
+    });
+
+    // Updated taxes
+    this.differences.taxes.updated.forEach((tax) => {
+      console.log(chalk.green(`Updated tax: ${getTaxFullName(tax)}`));
+
+      getEntityDifferences(tax, this.remoteConfig.taxes)
+        .forEach((difference) => {
+          console.log(`  Changed ${difference.key}: '${chalk.red(difference.from)}' to '${chalk.green(difference.to)}'`);
+        });
+    });
+
+    // Deactivated taxes
+    this.differences.taxes.deactivated.forEach((tax) => {
+      console.log(chalk.red(`Deactivated tax: ${getTaxFullName(tax)}`));
     });
   }
 
