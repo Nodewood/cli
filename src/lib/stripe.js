@@ -17,9 +17,16 @@ const ALLOWED_UPDATE_KEYS = {
   ],
   price: [
     'active',
-    'description',
     'metadata',
     'nickname',
+    'description',
+  ],
+  tax: [
+    'active',
+    'metadata',
+    'display_name',
+    'description',
+    'jurisdiction',
   ],
 };
 
@@ -510,7 +517,7 @@ async function applyChanges(differences) {
   // Updated prices
   for (const price of differences.prices.updated) {
     await stripe.prices.update(price.id, {
-      nickanme: price.nickanme,
+      nickname: price.nickanme,
       active: price.active,
       metadata: price.metadata,
     });
@@ -530,7 +537,21 @@ async function applyChanges(differences) {
   }
 
   // Updated taxes
+  for (const tax of differences.taxes.updated) {
+    await stripe.taxRates.update(tax.id, {
+      active: tax.active,
+      display_name: tax.display_name,
+      metadata: tax.metadata,
+      description: tax.description,
+    });
+    changesProgressBar.increment({ label: 'Applying changes: ' });
+  }
+
   // Deactivated taxes
+  for (const tax of differences.taxes.deactivated) {
+    await stripe.taxRates.update(tax.id, { active: false });
+    changesProgressBar.increment({ label: 'Applying changes: ' });
+  }
 
   /* eslint-enable no-restricted-syntax, no-await-in-loop */
 }
