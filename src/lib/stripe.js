@@ -2,10 +2,12 @@ const chalk = require('chalk');
 const { Spinner } = require('clui');
 const stripe = require('stripe')(process.env.STRIPE_SK);
 const { readJsonSync, writeJsonSync } = require('fs-extra');
-const { get, last, sortBy, omit, isEqual, flatMap } = require('lodash');
+const { get, last, sortBy, omit, isEqual, flatMap, invert } = require('lodash');
 const { resolve } = require('path');
 const { IncrementableProgress } = require('./ui');
 const { countries } = require(resolve(process.cwd(), 'wood/config/geography'));
+
+const keyedCountryNames = invert(countries);
 
 const ALLOWED_UPDATE_KEYS = {
   product: [
@@ -83,6 +85,27 @@ function writeLocalConfig(config) {
 
   // Remove prices
   delete config.prices;
+
+  let newTaxes = { countries: {}, states: {} };
+
+  config.taxes.forEach((tax) => {
+    const jurisdiction = tax.jurisdiction.split(',').map((j) => j.trim());
+    if (jurisdiction.length === 1) {
+      const country = keyedCountryNames[jurisdiction[0]];
+      newTaxes.countries[country] = get(newTaxes.countries, country, []);
+      newTaxes.countries[country].push(omit(tax, 'jurisdiction'));
+    }
+    else {
+      const state = jurisdiction[0];
+      const country = keyedCountryNames[jurisdiction[1]];
+
+      newTaxes.states[country] = get(newTaxes.states, country, {});
+      newTaxes.states[country][state] = get(newTaxes.states[country], state, []);
+      newTaxes.states[country][state].push(omit(tax, 'jurisdiction'));
+    }
+  });
+
+  config.taxes = newTaxes;
 
   writeJsonSync(
     resolve(process.cwd(), 'app/config/stripe.json'),
