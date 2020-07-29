@@ -28,6 +28,10 @@ const ALLOWED_UPDATE_KEYS = {
     'description',
     'jurisdiction',
   ],
+  coupon: [
+    'name',
+    'metadata',
+  ],
 };
 
 /**
@@ -132,15 +136,13 @@ function writeLocalConfig(config) {
  */
 async function getRemoteConfig() {
   const loadingSpinner = new Spinner('Loading remote configuration from Stripe...');
-
-  let productList;
-  let priceList;
-  let taxList;
-
   loadingSpinner.start();
-  productList = await getStripeProductList();
-  priceList = await getStripePriceList();
-  taxList = await getStripeTaxList();
+
+  const productList = await getStripeProductList();
+  const priceList = await getStripePriceList();
+  const taxList = await getStripeTaxList();
+  const couponList = await getStripeCouponList();
+
   loadingSpinner.stop();
 
   return {
@@ -149,7 +151,7 @@ async function getRemoteConfig() {
       name: product.name,
       description: product.description,
       active: product.active,
-      metadata: product.metadata,
+      metadata: get(product, 'metadata', {}),
     })),
     prices: sortBy(priceList, 'id').map((price) => ({
       id: price.id,
@@ -160,7 +162,7 @@ async function getRemoteConfig() {
       currency: price.currency,
       interval: price.recurring.interval,
       interval_count: price.recurring.interval_count,
-      metadata: price.metadata,
+      metadata: get(price, 'metadata', {}),
     })),
     taxes: sortBy(taxList, 'id').map((tax) => ({
       id: tax.id,
@@ -169,8 +171,19 @@ async function getRemoteConfig() {
       active: tax.active,
       inclusive: tax.inclusive,
       percentage: tax.percentage,
-      metadata: tax.metadata,
+      metadata: get(tax, 'metadata', {}),
       jurisdiction: tax.jurisdiction,
+    })),
+    coupons: sortBy(couponList, 'id').map((coupon) => ({
+      id: coupon.id,
+      name: coupon.name,
+      duration: coupon.duration,
+      metadata: get(coupon, 'metadata', {}),
+      amount_off: get(coupon, 'amount_off', null),
+      duration_in_months: get(coupon, 'duration_in_months', null),
+      percent_off: get(coupon, 'percent_off', null),
+      max_redemptions: get(coupon, 'max_redemptions', null),
+      redeem_by: get(coupon, 'redeem_by', null),
     })),
   };
 }
@@ -236,21 +249,38 @@ async function getStripeTaxList() {
 }
 
 /**
+ * Get the full, unaltered list of coupons from Stripe.
+ *
+ * @return {Array}
+ */
+async function getStripeCouponList() {
+  let couponList = [];
+  let params = {};
+  let response;
+
+  do {
+    response = await stripe.coupons.list(params); // eslint-disable-line no-await-in-loop
+    params.starting_after = get(last(response.data), 'id');
+
+    couponList = couponList.concat(response.data);
+  } while (response.has_more);
+
+  return couponList;
+}
+
+/**
  * Calculate the differences between the local config and the remote config.
  *
  * @return {Object}
  */
 function calculateDifferences(localConfig, remoteConfig) {
-  // When checking local products for updates, skip new products and omit the prices field
+  // When checking local products for updates, omit the prices field
   const localProductsForUpdateCheck = localConfig.products
-    .filter((product) => get(product, 'id'))
+    .filter(updateableEntries)
     .map((product) => omit(product, 'prices'));
-
-  // When checking local prices for updates, skip new prices
-  const localPricesForUpdateCheck = localConfig.prices.filter((price) => price.id);
-
-  // When checking local taxes for updates, skip new taxes
-  const localTaxesForUpdateCheck = localConfig.taxes.filter((tax) => tax.id);
+  const updateablePrices = localConfig.prices.filter(updateableEntries);
+  const updateableTaxes = localConfig.taxes.filter(updateableEntries);
+  const updateableCoupons = localConfig.coupons.filter(updateableEntries);
 
   return {
     products: {
@@ -260,13 +290,18 @@ function calculateDifferences(localConfig, remoteConfig) {
     },
     prices: {
       new: getNewEntries(localConfig.prices),
-      updated: getUpdatedEntries(localPricesForUpdateCheck, remoteConfig.prices, 'price'),
+      updated: getUpdatedEntries(updateablePrices, remoteConfig.prices, 'price'),
       deactivated: getDeactivatedEntries(localConfig.prices, remoteConfig.prices),
     },
     taxes: {
       new: getNewEntries(localConfig.taxes),
-      updated: getUpdatedEntries(localTaxesForUpdateCheck, remoteConfig.taxes, 'tax'),
+      updated: getUpdatedEntries(updateableTaxes, remoteConfig.taxes, 'tax'),
       deactivated: getDeactivatedEntries(localConfig.taxes, remoteConfig.taxes),
+    },
+    coupons: {
+      new: getNewEntries(localConfig.coupons),
+      updated: getUpdatedEntries(updateableCoupons, remoteConfig.coupons, 'coupon'),
+      deactivated: getDeactivatedEntries(localConfig.coupons, remoteConfig.coupons),
     },
   };
 }
@@ -282,6 +317,17 @@ function calculateDifferences(localConfig, remoteConfig) {
  */
 function getNewEntries(entries) {
   return entries.filter((entry) => ! get(entry, 'id'));
+}
+
+/**
+ * Gets a list of entries that exist locally and remotely that could potentially be updated.
+ *
+ * @param {Object} entry - The entry to check.
+ *
+ * @return {Boolean}
+ */
+function updateableEntries(entry) {
+  return !! entry.id;
 }
 
 /**
@@ -381,6 +427,36 @@ function getTaxFullName(tax) {
 }
 
 /**
+ * Gets the full name of a coupon, including amount.
+ *
+ * @param {Object} coupon - The coupon to get the full name for
+ *
+ * @return {String}
+ */
+function getCouponFullName(coupon) {
+  let textOff;
+
+  if (coupon.amount_off) {
+    const formattedAmount = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: coupon.currency,
+    }).format(coupon.amount_off / 100);
+    textOff = chalk.cyan(`${formattedAmount} off`);
+  }
+  else {
+    textOff = chalk.cyan(`${coupon.percent_off}% off`);
+  }
+
+  const textDuration = coupon.duration === 'repeating'
+    ? `for ${coupon.duration_in_months} months`
+    : coupon.duration;
+
+  const couponName = coupon.name || coupon.id || 'Unnamed coupon';
+
+  return `${chalk.cyan(couponName)} (${textOff}) ${chalk.cyan(textDuration)}`;
+}
+
+/**
  * Get the differences between an entity and its remote entity.
  *
  * @param {Object} entity - The entity to get the differences for.
@@ -466,8 +542,11 @@ function countDifferences(differences) {
     .reduce((total, key) => total + differences.prices[key].length, 0);
   const taxDifferences = Object.keys(differences.taxes)
     .reduce((total, key) => total + differences.taxes[key].length, 0);
+  const couponDifferences = Object.keys(differences.coupons)
+    .reduce((total, key) => total + differences.coupons[key].length, 0);
 
-  return productDifferences + newProductPriceDifferences + priceDifferences + taxDifferences;
+  return productDifferences + newProductPriceDifferences + priceDifferences
+    + taxDifferences + couponDifferences;
 }
 
 /**
@@ -564,6 +643,7 @@ module.exports = {
   getProductFullName,
   getPriceFullName,
   getTaxFullName,
+  getCouponFullName,
   getEntityDifferences,
   countDifferences,
   applyChanges,
