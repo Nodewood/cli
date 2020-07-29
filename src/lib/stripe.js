@@ -178,6 +178,7 @@ async function getRemoteConfig() {
       id: coupon.id,
       name: coupon.name,
       duration: coupon.duration,
+      currency: coupon.currency,
       metadata: get(coupon, 'metadata', {}),
       amount_off: get(coupon, 'amount_off', null),
       duration_in_months: get(coupon, 'duration_in_months', null),
@@ -301,7 +302,7 @@ function calculateDifferences(localConfig, remoteConfig) {
     coupons: {
       new: getNewEntries(localConfig.coupons),
       updated: getUpdatedEntries(updateableCoupons, remoteConfig.coupons, 'coupon'),
-      deactivated: getDeactivatedEntries(localConfig.coupons, remoteConfig.coupons),
+      deactivated: getDeletedCoupons(localConfig.coupons, remoteConfig.coupons),
     },
   };
 }
@@ -380,6 +381,24 @@ function getDeactivatedEntries(localEntries, remoteEntries) {
     const localEntry = last(localEntries.filter((local) => local.id === remote.id));
 
     return (! localEntry || ! localEntry.active);
+  });
+}
+
+/**
+ * Calculate coupons to be deleted on Stripe.
+ *
+ * Coupons cannot be deactivated, only deleted, so we cannot check the "active" property.
+ *
+ * @param {Array<Object>} localCoupons - The local entries to be checked.
+ * @param {Array<Object>} remoteCoupons - The remote entries to be checked against.
+ *
+ * @return {Array<Object>} - The entries to be deleted.
+ */
+function getDeletedCoupons(localCoupons, remoteCoupons) {
+  return remoteCoupons.filter((remote) => {
+    const localEntry = last(localCoupons.filter((local) => local.id === remote.id));
+
+    return (! localEntry);
   });
 }
 
@@ -527,6 +546,17 @@ function convertStripeTax(tax) {
 }
 
 /**
+ * Convert a coupon from our local config format to the format Stripe's API is expecting.
+ *
+ * @param {Object} coupon - The coupon in our local config format.
+ *
+ * @return {Object}
+ */
+function convertStripeCoupon(coupon) {
+  return coupon;
+}
+
+/**
  * Count the total differences in a difference object.
  *
  * @param {Object} differences - The difference object to count differences in.
@@ -629,6 +659,27 @@ async function applyChanges(differences) {
   // Deactivated taxes
   for (const tax of differences.taxes.deactivated) {
     await stripe.taxRates.update(tax.id, { active: false });
+    changesProgressBar.increment({ label: 'Applying changes: ' });
+  }
+
+  // New coupons
+  for (const coupon of differences.coupons.new) {
+    await stripe.coupons.create(convertStripeCoupon(coupon));
+    changesProgressBar.increment({ label: 'Applying changes: ' });
+  }
+
+  // Updated coupons
+  for (const coupon of differences.coupons.updated) {
+    await stripe.coupons.update(coupon.id, {
+      name: coupon.name,
+      metadata: coupon.metadata,
+    });
+    changesProgressBar.increment({ label: 'Applying changes: ' });
+  }
+
+  // Deleted coupons
+  for (const coupon of differences.coupons.deactivated) {
+    await stripe.coupons.del(coupon.id);
     changesProgressBar.increment({ label: 'Applying changes: ' });
   }
 

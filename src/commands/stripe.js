@@ -182,7 +182,7 @@ class StripeCommand extends Command {
       console.log(chalk.green(`New coupon: ${getCouponFullName(tax)}`));
     });
 
-    // Updated taxes
+    // Updated coupons
     differences.coupons.updated.forEach((coupon) => {
       console.log(chalk.green(`Updated coupon: ${getCouponFullName(coupon)}`));
 
@@ -205,7 +205,7 @@ class StripeCommand extends Command {
    * @param {Boolean} confirm - If the user must first confirm changes.
    */
   async sync(differences, { confirm }) {
-    this.diff('The following changes will be applied to your Stripe configuration:\n');
+    await this.diff(differences, 'The following changes will be applied to your Stripe configuration:\n');
 
     if (countDifferences(differences) === 0 || (confirm && ! await confirmChanges())) {
       return;
