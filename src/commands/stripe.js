@@ -1,7 +1,7 @@
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
 const { resolve } = require('path');
-const { get, omit } = require('lodash');
+const { get, omit, isPlainObject } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
 const {
@@ -31,6 +31,21 @@ async function confirmChanges() {
   });
 
   return answers.confirm;
+}
+
+/**
+ * Certain differences require formatting to be displayed correctly.
+ *
+ * @param {Mixed} difference - The difference to display.
+ *
+ * @return {String}
+ */
+function formatDifference(difference) {
+  if (isPlainObject(difference)) {
+    return JSON.stringify(difference);
+  }
+
+  return difference;
 }
 
 class StripeCommand extends Command {
@@ -128,7 +143,7 @@ class StripeCommand extends Command {
 
       getEntityDifferences(omit(product, 'prices'), this.remoteConfig.products)
         .forEach((difference) => {
-          console.log(`  Changed ${difference.key}: '${chalk.red(difference.from)}' to '${chalk.green(difference.to)}'`);
+          console.log(`  Changed ${difference.key}: '${chalk.red(formatDifference(difference.from))}' to '${chalk.green(formatDifference(difference.to))}'`);
         });
     });
 
@@ -148,7 +163,7 @@ class StripeCommand extends Command {
 
       getEntityDifferences(omit(price, 'product'), this.remoteConfig.prices)
         .forEach((difference) => {
-          console.log(`  Changed ${difference.key}: '${chalk.red(difference.from)}' to '${chalk.green(difference.to)}'`);
+          console.log(`  Changed ${difference.key}: '${chalk.red(formatDifference(difference.from))}' to '${chalk.green(formatDifference(difference.to))}'`);
         });
     });
 
@@ -168,7 +183,7 @@ class StripeCommand extends Command {
 
       getEntityDifferences(tax, this.remoteConfig.taxes)
         .forEach((difference) => {
-          console.log(`  Changed ${difference.key}: '${chalk.red(difference.from)}' to '${chalk.green(difference.to)}'`);
+          console.log(`  Changed ${difference.key}: '${chalk.red(formatDifference(difference.from))}' to '${chalk.green(formatDifference(difference.to))}'`);
         });
     });
 
@@ -188,7 +203,7 @@ class StripeCommand extends Command {
 
       getEntityDifferences(coupon, this.remoteConfig.coupons)
         .forEach((difference) => {
-          console.log(`  Changed ${difference.key}: '${chalk.red(difference.from)}' to '${chalk.green(difference.to)}'`);
+          console.log(`  Changed ${difference.key}: '${chalk.red(formatDifference(difference.from))}' to '${chalk.green(formatDifference(difference.to))}'`);
         });
     });
 
