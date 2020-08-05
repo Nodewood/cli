@@ -300,7 +300,7 @@ function calculateDifferences(localConfig, remoteConfig) {
       deactivated: getDeactivatedEntries(localConfig.taxes, remoteConfig.taxes),
     },
     coupons: {
-      new: getNewEntries(localConfig.coupons),
+      new: getNewCoupons(localConfig.coupons, remoteConfig.coupons),
       updated: getUpdatedEntries(updateableCoupons, remoteConfig.coupons, 'coupon'),
       deactivated: getDeletedCoupons(localConfig.coupons, remoteConfig.coupons),
     },
@@ -318,6 +318,23 @@ function calculateDifferences(localConfig, remoteConfig) {
  */
 function getNewEntries(entries) {
   return entries.filter((entry) => ! get(entry, 'id'));
+}
+
+/**
+ * Calculate new coupons.
+ *
+ * Coupons can have their ID set manually, so we can't rely on ID being set to determine if they
+ * are new, we have to actually compare against remote coupon list.
+ *
+ * @param {Array<Object>} localCoupons - The local coupons to identify new entries from.
+ * @param {Array<Object>} remoteCoupons - The list of remote coupons to compare to.
+ *
+ * @return {Array<Object}
+ */
+function getNewCoupons(localCoupons, remoteCoupons) {
+  const remoteIds = remoteCoupons.map((coupon) => coupon.id);
+
+  return localCoupons.filter((coupon) => ! remoteIds.includes(coupon.id));
 }
 
 /**
