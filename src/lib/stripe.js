@@ -2,7 +2,7 @@ const chalk = require('chalk');
 const { Spinner } = require('clui');
 const stripe = require('stripe')(process.env.STRIPE_SK);
 const { readJsonSync, writeJsonSync } = require('fs-extra');
-const { get, last, sortBy, omit, isEqual, flatMap, invert } = require('lodash');
+const { get, last, sortBy, omit, omitBy, isNil, isEqual, flatMap, invert } = require('lodash');
 const { resolve } = require('path');
 const { IncrementableProgress } = require('./ui');
 const { countries } = require(resolve(process.cwd(), 'wood/config/geography'));
@@ -565,12 +565,14 @@ function convertStripeTax(tax) {
 /**
  * Convert a coupon from our local config format to the format Stripe's API is expecting.
  *
+ * Omit null/empty/falsey values to avoid triggering Stripe validation errors.
+ *
  * @param {Object} coupon - The coupon in our local config format.
  *
  * @return {Object}
  */
 function convertStripeCoupon(coupon) {
-  return coupon;
+  return omitBy(coupon, isNil);
 }
 
 /**
