@@ -43,31 +43,36 @@ const ALLOWED_UPDATE_KEYS = {
  */
 function getLocalConfig() {
   try {
-    let config = readJsonSync(resolve(process.cwd(), 'app/config/stripe.json'));
-    config.products = sortBy(config.products, 'id').map((product) => {
+    let config = {};
+
+    const productsConfig = readJsonSync(resolve(process.cwd(), 'app/config/stripe/products.json'));
+    config.products = sortBy(productsConfig, 'id').map((product) => {
       return {
         ...product,
         prices: sortBy(product.prices, 'id'),
       };
     });
     config.prices = flatMap(
-      config.products,
+      productsConfig,
       (product) => product.prices.map((price) => ({ product: product.id, ...price })),
     ).filter((price) => price.product);
 
-    config.taxes = Object.keys(config.taxes.countries).flatMap(
-      (countryKey) => config.taxes.countries[countryKey].map((taxConfig) => ({
+    const taxesConfig = readJsonSync(resolve(process.cwd(), 'app/config/stripe/taxes.json'));
+    config.taxes = Object.keys(taxesConfig.countries).flatMap(
+      (countryKey) => taxesConfig.countries[countryKey].map((taxConfig) => ({
         jurisdiction: countries[countryKey],
         ...taxConfig,
       })),
-    ).concat(Object.keys(config.taxes.states).flatMap(
-      (countryKey) => Object.keys(config.taxes.states[countryKey]).flatMap(
-        (stateKey) => config.taxes.states[countryKey][stateKey].map((taxConfig) => ({
+    ).concat(Object.keys(taxesConfig.states).flatMap(
+      (countryKey) => Object.keys(taxesConfig.states[countryKey]).flatMap(
+        (stateKey) => taxesConfig.states[countryKey][stateKey].map((taxConfig) => ({
           jurisdiction: `${stateKey}, ${countries[countryKey]}`,
           ...taxConfig,
         })),
       ),
     ));
+
+    config.coupons = readJsonSync(resolve(process.cwd(), 'app/config/stripe/coupons.json'));
 
     return config;
   }
@@ -94,11 +99,15 @@ function writeLocalConfig(config) {
     });
   });
 
-  // Remove prices
-  delete config.prices;
+  // Write products
+  writeJsonSync(
+    resolve(process.cwd(), 'app/config/stripe/products.json'),
+    config.products,
+    { spaces: 2 },
+  );
 
+  // Build taxes format
   let newTaxes = { countries: {}, states: {} };
-
   config.taxes.forEach((tax) => {
     const jurisdiction = tax.jurisdiction.split(',').map((j) => j.trim());
     if (jurisdiction.length === 1) {
@@ -116,14 +125,18 @@ function writeLocalConfig(config) {
     }
   });
 
-  config.taxes = newTaxes;
-
+  // Write taxes
   writeJsonSync(
-    resolve(process.cwd(), 'app/config/stripe.json'),
-    config,
-    {
-      spaces: 2,
-    },
+    resolve(process.cwd(), 'app/config/stripe/taxes.json'),
+    newTaxes,
+    { spaces: 2 },
+  );
+
+  // Write coupons
+  writeJsonSync(
+    resolve(process.cwd(), 'app/config/stripe/coupons.json'),
+    config.coupons,
+    { spaces: 2 },
   );
 }
 
