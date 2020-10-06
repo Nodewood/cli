@@ -5,15 +5,13 @@ const { readJsonSync, writeJsonSync } = require('fs-extra');
 const { get, last, sortBy, omit, omitBy, isNil, isEqual, flatMap, invert } = require('lodash');
 const { resolve } = require('path');
 const { IncrementableProgress } = require('./ui');
-const { countries } = require(resolve(process.cwd(), 'wood/config/geography'));
-
-const keyedCountryNames = invert(countries);
 
 const ALLOWED_UPDATE_KEYS = {
   product: [
     'active',
     'metadata',
-    'nickname',
+    'name',
+    'description',
   ],
   price: [
     'active',
@@ -42,6 +40,9 @@ const ALLOWED_UPDATE_KEYS = {
  * @return {Object}
  */
 function getLocalConfig() {
+  // Can't require ahead of time, since this command only works from a project directory
+  const { countries } = require(resolve(process.cwd(), 'wood/config/geography')); // eslint-disable-line global-require
+
   try {
     let config = {};
 
@@ -89,6 +90,10 @@ function getLocalConfig() {
 }
 
 function writeLocalConfig(config) {
+  // Can't require ahead of time, since this command only works from a project directory
+  const { countries } = require(resolve(process.cwd(), 'wood/config/geography')); // eslint-disable-line global-require
+  const keyedCountryNames = invert(countries);
+
   // Add prices to products
   config.prices.forEach((price) => {
     config.products.map((product) => {
