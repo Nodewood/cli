@@ -6,6 +6,13 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.8.0
+
+- Updates lodash for security.
+- Simplified and improved Stripe config format/syncing.
+- Fixes bug where using CLI outside of active Nodewood project folder fails.
+- Adds installation instructions to the end of `new` command.
+
 ### 0.6.0
 
 - Adds `nodewood stripe` command.

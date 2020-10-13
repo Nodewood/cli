@@ -24,7 +24,7 @@
     "fs-extra": "9.0.0",
     "inquirer": "7.1.0",
     "klaw-sync": "6.0.0",
-    "lodash": "4.17.15",
+    "lodash": "^4.17.19",
     "minimist": "1.2.5",
     "moment": "^2.24.0",
     "pluralize": "8.0.0",
