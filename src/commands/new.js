@@ -114,6 +114,8 @@ class NewCommand extends Command {
 
       console.log(chalk.yellow(`\nA later version of Nodewood (${latest}) is available than what your license allows you to download (${downloaded}).`)); // eslint-disable-line max-len
       console.log(chalk.yellow(`Log in to your account at ${chalk.cyan('https://nodewood.com')} and purchase an extension to your license to download the latest updates.`)); // eslint-disable-line max-len
+
+      console.log('\n To continue the installation, visit https://nodewood.com/docs/master/getting-started/installation/.');
     }
   }
 
@@ -214,7 +216,7 @@ class NewCommand extends Command {
             return true;
           }
 
-          return `Visit ${chalk.cyan('https://nodewood.test/app/projects')} for your API key.`;
+          return `Visit ${chalk.cyan('https://nodewood.com/app/projects')} for your API key.`;
         },
       },
       {
@@ -226,7 +228,7 @@ class NewCommand extends Command {
             return true;
           }
 
-          return `Visit ${chalk.cyan('https://nodewood.test/app/projects')} for your secret key.`;
+          return `Visit ${chalk.cyan('https://nodewood.com/app/projects')} for your secret key.`;
         },
       },
     ];
