@@ -6,6 +6,10 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.8.1
+
+- Installation instructions now happen on every install.
+
 ### 0.8.0
 
 - Updates lodash for security.
