@@ -1,7 +1,7 @@
 const chalk = require('chalk');
 const klawSync = require('klaw-sync');
 const { spawn } = require('child_process');
-const { get, kebabCase, snakeCase, compact } = require('lodash');
+const { get, kebabCase, snakeCase/* , compact */ } = require('lodash');
 const { resolve: pathResolve, extname, basename } = require('path');
 const { prompt } = require('inquirer');
 const {
@@ -282,19 +282,20 @@ class NewCommand extends Command {
    * @return {boolean}
    */
   async areAllAppsInstalled() {
-    const missingPrograms = compact(await Promise.all([
-      this.canRun('vagrant --version', 'Vagrant'),
-      this.canRun('vboxmanage --version', 'VirtualBox'),
-      this.canRun('ansible --version', 'Ansible'),
-      this.canRun('yarn --version', 'Yarn'),
-    ]));
+    // const missingPrograms = compact(await Promise.all([
+    //   this.canRun('vagrant --version', 'Vagrant'),
+    //   this.canRun('vboxmanage --version', 'VirtualBox'),
+    //   this.canRun('ansible --version', 'Ansible'),
+    //   this.canRun('yarn --version', 'Yarn'),
+    // ]));
 
-    if (missingPrograms.length) {
-      console.log(chalk.red('Could not create new project, the following programs are not installed:'));
-      missingPrograms.forEach((program) => console.log(`- ${chalk.cyan(program)}`));
+    // if (missingPrograms.length) {
+    // eslint-disable-next-line max-len
+    //   console.log(chalk.red('Could not create new project, the following programs are not installed:'));
+    //   missingPrograms.forEach((program) => console.log(`- ${chalk.cyan(program)}`));
 
-      return false;
-    }
+    //   return false;
+    // }
 
     return true;
   }

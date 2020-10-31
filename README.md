@@ -4,7 +4,13 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 [Documentation can be found on the Nodewood website](https://nodewood.com/docs/master/getting-started/cli/)
 
+Release numbers may not be sequential, as they are pinned to the version of the Nodewood base code they are supporting.
+
 ## Releases
+
+### 0.8.5
+
+- Removes the check for Ansible, Vagrant, VirtualBox, and Yarn on new project creation.
 
 ### 0.8.1
 
