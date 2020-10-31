@@ -67,6 +67,7 @@ class NewCommand extends Command {
 
     console.log(chalk.yellow('\nOptions:'));
     console.log(`  ${chalk.cyan('--overwrite')}    # Overwrite existing files`);
+    console.log(`  ${chalk.cyan('--skip-check')}   # Skip environment check`);
   }
 
   /**
@@ -75,7 +76,8 @@ class NewCommand extends Command {
    * @param {Array} args - Command arguments, as parsed by minimist.
    */
   async execute(args) {
-    if (! await this.areAllAppsInstalled()) {
+    const skipChecks = get(args, 'skip-check', false);
+    if (! skipChecks && ! await this.areAllAppsInstalled()) {
       return;
     }
 
@@ -83,7 +85,8 @@ class NewCommand extends Command {
     const path = pathResolve(process.cwd(), get(args._, 1, false));
 
     if (! overwrite && ! this.isEmptyDirectory(path)) {
-      console.log(chalk.red(`Directory '${path}' must be empty.`));
+      console.log(chalk.red(`Directory '${chalk.cyan(path)}' must be empty.`));
+      console.log(`\nTo overwrite existing files, add the ${chalk.cyan('--overwrite')} option to your command.`);
       return;
     }
 
@@ -287,6 +290,8 @@ class NewCommand extends Command {
     if (missingPrograms.length) {
       console.log(chalk.red('Could not create new project, the following programs are not installed:'));
       missingPrograms.forEach((program) => console.log(`- ${chalk.cyan(program)}`));
+
+      console.log(`\nTo skip this check, add the ${chalk.cyan('--skip-check')} option to your command.`);
 
       return false;
     }
