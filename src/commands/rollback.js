@@ -41,7 +41,7 @@ class RollbackCommand extends Command {
     }
 
     const env = get(args._, 1, '') === 'test' ? '--env test' : '';
-    const knexProcess = spawn('sh', ['-c', `knex migrate:rollback ${env}`], { stdio: 'inherit' });
+    const knexProcess = spawn('sh', ['-c', `docker-compose run api /bin/bash -c "yarn rollback${env}"`], { stdio: 'inherit' });
     knexProcess.on('close', (code) => {
       if (code > 0) {
         console.log(chalk.yellow('Are you running this command from the development VM or where your database resides?'));
