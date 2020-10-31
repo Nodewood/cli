@@ -8,6 +8,10 @@ Release numbers may not be sequential, as they are pinned to the version of the 
 
 ## Releases
 
+### 0.9.0
+
+- Updates `nodewood dev` command to work with Docker.
+
 ### 0.8.5
 
 - Removes the check for Ansible, Vagrant, VirtualBox, and Yarn on new project creation.

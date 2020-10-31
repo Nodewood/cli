@@ -4,11 +4,6 @@ const { get } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
 
-const SERVER_TYPES = [
-  'api',
-  'ui',
-];
-
 class DevCommand extends Command {
   /**
    * Returns the one-liner version of help text to display on the general help command.
@@ -16,7 +11,7 @@ class DevCommand extends Command {
    * @return {String}
    */
   helpLine() {
-    return 'Start the API or UI development servers.';
+    return 'Start the development server using docker-compose.';
   }
 
   /**
@@ -28,10 +23,7 @@ class DevCommand extends Command {
     console.log(this.helpLine());
 
     console.log(chalk.yellow('\nUsage:'));
-    console.log('  nodewood dev TYPE');
-
-    console.log(chalk.yellow('\nParameters:'));
-    console.log(`  ${chalk.cyan('TYPE')}     # Which server to start (${chalk.cyan('api')} or ${chalk.cyan('ui')})`); // eslint-disable-line max-len
+    console.log('  nodewood dev');
   }
 
   /**
@@ -45,13 +37,7 @@ class DevCommand extends Command {
       return;
     }
 
-    const type = get(args._, 1, 'empty');
-    if (SERVER_TYPES.includes(type)) {
-      spawn('sh', ['-c', `yarn dev-${type}`], { stdio: 'inherit' });
-    }
-    else {
-      console.log(chalk.red(`Invalid server type specified: '${type}'.`));
-    }
+    spawn('sh', ['-c', 'docker-compose up'], { stdio: 'inherit' });
   }
 }
 
