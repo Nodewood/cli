@@ -11,6 +11,9 @@ Release numbers may not be sequential, as they are pinned to the version of the 
 ### 0.9.0
 
 - Updates `nodewood dev` command to work with Docker.
+- Updates `nodewood new` command to work with Docker.
+- Adds `--skip-check` option to `nodewood new`.
+- Fixes `--overwrite` option for `nodewood new` so that it doesn't empty directory first.
 
 ### 0.8.5
 

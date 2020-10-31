@@ -6,7 +6,7 @@ const { resolve: pathResolve, extname, basename } = require('path');
 const { prompt } = require('inquirer');
 const {
   readdirSync,
-  emptyDirSync,
+  ensureDirSync,
   existsSync,
   lstatSync,
   readFileSync,
@@ -90,7 +90,7 @@ class NewCommand extends Command {
       return;
     }
 
-    emptyDirSync(path);
+    ensureDirSync(path);
 
     const { apiKey, secretKey } = await this.getApiKeys();
 
