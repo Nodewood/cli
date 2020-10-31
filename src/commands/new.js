@@ -101,8 +101,6 @@ class NewCommand extends Command {
     console.log('New project created at:');
     console.log(chalk.cyan(path));
 
-    await this.ansibleInstall(path);
-
     if (templateVersions.downloaded !== templateVersions.latest
       || woodVersions.downloaded !== woodVersions.latest) {
       const latest = woodVersions.downloaded !== woodVersions.latest
@@ -316,18 +314,6 @@ class NewCommand extends Command {
       cmdProcess.on('close', (code) => {
         resolve(code > 0 ? program : null);
       });
-      cmdProcess.on('error', (err) => reject(err));
-    });
-  }
-
-  /**
-   * Runs `yarn ansible-install` in the target directory.
-   */
-  ansibleInstall(path) {
-    console.log('Installing Ansible dependencies...');
-    return new Promise((resolve, reject) => {
-      const cmdProcess = spawn('sh', ['-c', `cd ${path} && yarn ansible-install`], { stdio: 'inherit' });
-      cmdProcess.on('close', (code) => resolve(code > 0));
       cmdProcess.on('error', (err) => reject(err));
     });
   }
