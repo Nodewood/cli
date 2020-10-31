@@ -15,6 +15,7 @@ Release numbers may not be sequential, as they are pinned to the version of the 
 - Adds `--skip-check` option to `nodewood new`.
 - Fixes `--overwrite` option for `nodewood new` so that it doesn't empty directory first.
 - Updates `nodewood migrate` and `nodewood rollback` commands to work with Docker.
+- Removes `nodewood vm` command.
 
 ### 0.8.5
 

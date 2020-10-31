@@ -5,7 +5,6 @@ const { RollbackCommand } = require('../commands/rollback');
 const { StripeCommand } = require('../commands/stripe');
 const { NewCommand } = require('../commands/new');
 const { UpCommand } = require('../commands/up');
-const { VmCommand } = require('../commands/vm');
 
 module.exports = {
   add: AddCommand,
@@ -15,5 +14,4 @@ module.exports = {
   stripe: StripeCommand,
   new: NewCommand,
   up: UpCommand,
-  vm: VmCommand,
 };
