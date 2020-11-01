@@ -80,7 +80,7 @@ class AddCommand extends Command {
     console.log(this.helpLine());
 
     console.log(chalk.yellow('\nUsage:'));
-    console.log('  nodewood add TYPE FEATURE [NAME] [OPTIONS]');
+    console.log('  nodewood add:TYPE FEATURE [NAME] [OPTIONS]');
 
     console.log(chalk.yellow('\nParameters:'));
     console.log(`  ${chalk.cyan('TYPE')}     # What to add to your app`);
@@ -98,10 +98,10 @@ class AddCommand extends Command {
     console.log(`  ${chalk.cyan('--plural=PLURAL')} # Use a custom plural`);
 
     console.log(chalk.yellow('\nExamples:'));
-    console.log('  nodewood add feature api-tokens --no-examples');
-    console.log('  nodewood add migration api-tokens');
-    console.log('  nodewood add dialog api-tokens edit-token --overwrite');
-    console.log('  nodewood add page api-tokens list-tokens --no-init');
+    console.log('  nodewood add:feature api-tokens --no-examples');
+    console.log('  nodewood add:migration api-tokens');
+    console.log('  nodewood add:dialog api-tokens edit-token --overwrite');
+    console.log('  nodewood add:page api-tokens list-tokens --no-init');
   }
 
   /**
@@ -115,7 +115,7 @@ class AddCommand extends Command {
       return;
     }
 
-    const toAdd = get(args._, 1, false);
+    const toAdd = get(args._, 0, false).split(':')[1];
 
     const parsedArgs = {
       overwrite: get(args, 'overwrite', false),
@@ -124,7 +124,7 @@ class AddCommand extends Command {
     };
 
     if (toAdd === TYPE_FEATURE) {
-      let name = get(args._, 2, false);
+      let name = get(args._, 1, false);
 
       if (! name) {
         console.log(chalk.red('You must enter a feature name.'));
@@ -139,13 +139,13 @@ class AddCommand extends Command {
       });
     }
     else if (toAdd === TYPE_MIGRATION) {
-      const name = get(args._, 2, false);
+      const name = get(args._, 1, false);
 
       this.addMigration(name);
     }
     else {
-      const feature = get(args._, 2, false);
-      const name = get(args._, 3, false);
+      const feature = get(args._, 1, false);
+      const name = get(args._, 2, false);
 
       if (! existsSync(resolve((process.cwd(), `app/features/${feature}`)))) {
         console.log(chalk.red(`Feature '${feature}' does not exist at 'app/features/${feature}'.`));

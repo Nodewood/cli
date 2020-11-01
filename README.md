@@ -17,6 +17,7 @@ Release numbers may not be sequential, as they are pinned to the version of the 
 - Updates `nodewood migrate` and `nodewood rollback` commands to work with Docker.
 - Removes `nodewood vm` command.
 - Adds `nodewood up:docker` command.
+- Renames `nodewood stripe` and `nodewood add` commands to use a colon separator (`nodewood stripe:diff`, etc).
 
 ### 0.8.5
 

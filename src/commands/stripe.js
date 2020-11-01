@@ -67,9 +67,9 @@ class StripeCommand extends Command {
     console.log(this.helpLine());
 
     console.log(chalk.yellow('\nUsage:'));
-    console.log('  nodewood stripe diff    # Show the difference between your config and live plans');
-    console.log('  nodewood stripe sync    # Update the live plans to match your config');
-    console.log('  nodewood stripe import  # Imports current live plans as a Nodewood config');
+    console.log('  nodewood stripe:diff    # Show the difference between your config and live plans');
+    console.log('  nodewood stripe:sync    # Update the live plans to match your config');
+    console.log('  nodewood stripe:import  # Imports current live plans as a Nodewood config');
 
     console.log(chalk.yellow('\nOptions:'));
     console.log(`  ${chalk.cyan('--no-confirm')}     # Do not confirm before syncing`);
@@ -95,7 +95,7 @@ class StripeCommand extends Command {
     this.localConfig = getLocalConfig();
     this.remoteConfig = await getRemoteConfig();
 
-    const type = get(args._, 1);
+    const type = get(args._, 0, false).split(':')[1];
     if (type === 'diff') {
       const differences = calculateDifferences(this.localConfig, this.remoteConfig);
       await this.diff(differences);
