@@ -23,10 +23,10 @@ class MigrateCommand extends Command {
     console.log(this.helpLine());
 
     console.log(chalk.yellow('\nUsage:'));
-    console.log('  nodewood migrate (ENV)');
+    console.log('  nodewood migrate');
 
-    console.log(chalk.yellow('\nParameters:'));
-    console.log(`  ${chalk.cyan('ENV')}     # Optionally ${chalk.cyan('test')} to run migrations against test database.`); // eslint-disable-line max-len
+    console.log(chalk.yellow('\nOptions:'));
+    console.log(`  ${chalk.cyan('--test')}  # Run migrations against test database.`);
   }
 
   /**
@@ -40,7 +40,7 @@ class MigrateCommand extends Command {
       return;
     }
 
-    const env = get(args._, 1, '') === 'test' ? '-test' : '';
+    const env = get(args, 'test', false) ? '-test' : '';
     const knexProcess = spawn('sh', ['-c', `docker-compose run api /bin/bash -c "yarn migrate${env}"`], { stdio: 'inherit' });
     knexProcess.on('close', (code) => {
       if (code > 0) {
