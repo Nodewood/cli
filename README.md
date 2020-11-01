@@ -16,6 +16,7 @@ Release numbers may not be sequential, as they are pinned to the version of the 
 - Fixes `--overwrite` option for `nodewood new` so that it doesn't empty directory first.
 - Updates `nodewood migrate` and `nodewood rollback` commands to work with Docker.
 - Removes `nodewood vm` command.
+- Adds `nodewood up:docker` command.
 
 ### 0.8.5
 
