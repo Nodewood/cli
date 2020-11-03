@@ -51,6 +51,7 @@ function buildRequest(method, url, apiKey, secretKey) {
  * @return { downloaded, latest } The downloaded and latest-possible version of the template.
  */
 async function installTemplate(path, apiKey, secretKey) {
+  console.log('Installing application template...');
   const versions = await downloadZip(
     `${URL_BASE}${URL_SUFFIX_TEMPLATE}`,
     `${path}/template.zip`,
@@ -73,6 +74,7 @@ async function installTemplate(path, apiKey, secretKey) {
  * @return { downloaded, latest } The downloaded and latest-possible version of wood.
  */
 async function installWood(path, apiKey, secretKey) {
+  console.log('Installing Nodewood library...');
   const versions = await downloadZip(
     `${URL_BASE}${URL_SUFFIX_WOOD}`,
     `${path}/wood.zip`,

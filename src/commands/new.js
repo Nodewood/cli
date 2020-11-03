@@ -1,6 +1,6 @@
 const chalk = require('chalk');
 const klawSync = require('klaw-sync');
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const { get, kebabCase, snakeCase, compact } = require('lodash');
 const { resolve: pathResolve, extname, basename } = require('path');
 const { prompt } = require('inquirer');
@@ -11,6 +11,7 @@ const {
   lstatSync,
   readFileSync,
   writeFileSync,
+  copySync,
 } = require('fs-extra');
 const { Command } = require('../lib/Command');
 const {
@@ -100,6 +101,8 @@ class NewCommand extends Command {
 
     await this.templateFiles(path, project, apiKey, secretKey);
     await this.writeConfigFile(path, { ...project, apiKey, secretKey });
+    await this.copyEnvFile(path);
+    await this.yarnInstall(path);
 
     console.log('New project created at:');
     console.log(chalk.cyan(path));
@@ -150,6 +153,31 @@ class NewCommand extends Command {
       pathResolve(path, '.nodewood.js'),
       `module.exports = {\n  name: '${project.name}',\n  apiKey: '${project.apiKey}',\n  secretKey: '${project.secretKey}',\n};\n`, // eslint-disable-line max-len
     );
+  }
+
+  /**
+   * Copy the initial .env.template file to .env to create initial environment file.
+   *
+   * @param {String} path - The project path to copy the environment file from/to.
+   */
+  copyEnvFile(path) {
+    copySync(
+      pathResolve(path, '.env.template'),
+      pathResolve(path, '.env'),
+    );
+  }
+
+  /**
+   * Install node modules so first-run of Docker works as expected.
+   *
+   * @param {String} path - The project path to install node_modules for.
+   */
+  yarnInstall(path) {
+    console.log('Installing node modules...');
+    execSync('yarn install', {
+      cwd: path,
+      stdio: 'inherit',
+    });
   }
 
   /**
@@ -285,6 +313,7 @@ class NewCommand extends Command {
   async areAllAppsInstalled() {
     const missingPrograms = compact(await Promise.all([
       this.canRun('docker-compose --version', 'Docker'),
+      this.canRun('yarn --version', 'Yarn'),
     ]));
 
     if (missingPrograms.length) {

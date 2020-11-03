@@ -41,12 +41,7 @@ class MigrateCommand extends Command {
     }
 
     const env = get(args, 'test', false) ? '-test' : '';
-    const knexProcess = spawn('sh', ['-c', `docker-compose run api /bin/bash -c "yarn migrate${env}"`], { stdio: 'inherit' });
-    knexProcess.on('close', (code) => {
-      if (code > 0) {
-        console.log(chalk.yellow('Are you running this command from the development VM or where your database resides?'));
-      }
-    });
+    spawn('sh', ['-c', `docker-compose run api /bin/bash -c "yarn migrate${env}"`], { stdio: 'inherit' });
   }
 }
 

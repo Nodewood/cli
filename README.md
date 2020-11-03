@@ -8,6 +8,12 @@ Release numbers may not be sequential, as they are pinned to the version of the 
 
 ## Releases
 
+### 0.9.1
+
+- Ensures Yarn is installed before `nodewood new` can be run.
+- Installs node modules as part of `nodewood new`.
+- Copies .env file as part of `nodewood new`.
+
 ### 0.9.0
 
 - Updates `nodewood dev` command to work with Docker.
