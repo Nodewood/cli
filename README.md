@@ -4,9 +4,11 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 [Documentation can be found on the Nodewood website](https://nodewood.com/docs/master/getting-started/cli/)
 
-Release numbers may not be sequential, as they are pinned to the version of the Nodewood base code they are supporting.
-
 ## Releases
+
+### 0.9.2
+
+- Adds `nodewood test` command.
 
 ### 0.9.1
 
