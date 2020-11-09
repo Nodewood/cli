@@ -41,7 +41,7 @@ class MigrateCommand extends Command {
     }
 
     const env = get(args, 'test', false) ? '-test' : '';
-    spawn('sh', ['-c', `docker-compose run api /bin/bash -c "yarn migrate${env}"`], { stdio: 'inherit' });
+    spawn('sh', ['-c', `docker-compose -f wood/docker/docker-compose.yml run api /bin/bash -c "yarn migrate${env}"`], { stdio: 'inherit' });
   }
 }
 

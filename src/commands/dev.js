@@ -37,7 +37,7 @@ class DevCommand extends Command {
       return;
     }
 
-    spawn('sh', ['-c', 'docker-compose up'], { stdio: 'inherit' });
+    spawn('sh', ['-c', 'docker-compose -f wood/docker/docker-compose.yml up'], { stdio: 'inherit' });
   }
 }
 

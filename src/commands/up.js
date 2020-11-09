@@ -32,7 +32,6 @@ class UpCommand extends Command {
 
     console.log(chalk.yellow('\nUsage:'));
     console.log('  nodewood up         # Updates your Nodewood installation to the latest available version');
-    console.log('  nodewood up:docker  # Updates your docker files to the current version');
   }
 
   /**
@@ -46,19 +45,6 @@ class UpCommand extends Command {
       return;
     }
 
-    const type = get(args._, 0, false).split(':')[1];
-    if (type === 'docker') {
-      await this.dockerUpdate();
-    }
-    else {
-      await this.fullUpdate();
-    }
-  }
-
-  /**
-   * Updates the full wood folder to the latest available version.
-   */
-  async fullUpdate() {
     const { apiKey, secretKey } = require(resolve(process.cwd(), '.nodewood.js')); // eslint-disable-line global-require
     const { version: currentWoodVersion } = readJsonSync(resolve(process.cwd(), 'wood/package.json'));
     const { releases, latestUserVersion } = await getReleaseInfo(apiKey, secretKey);
@@ -94,38 +80,6 @@ class UpCommand extends Command {
     await installWood(process.cwd(), apiKey, secretKey);
 
     console.log(`Your Nodewood installation has been upgraded to ${chalk.cyan(targetRelease.version)}.`);
-  }
-
-  /**
-   * Updates docker files to the ones in the Nodewood directory.
-   */
-  async dockerUpdate() {
-    const answers = await prompt({
-      name: 'confirm',
-      type: 'confirm',
-      message: '\nThis will overwrite your docker configuration with the one from the `wood`\nfolder.  You will lose any local changes.  Is this okay?',
-    });
-
-    if (answers.confirm) {
-      copySync(
-        resolve(process.cwd(), 'wood/docker/docker-compose.yml'),
-        resolve(process.cwd(), 'docker-compose.yml'),
-      );
-      copySync(
-        resolve(process.cwd(), 'wood/docker/Dockerfile'),
-        resolve(process.cwd(), 'Dockerfile'),
-      );
-      copySync(
-        resolve(process.cwd(), 'wood/docker/Dockerfile.nginx'),
-        resolve(process.cwd(), 'Dockerfile.nginx'),
-      );
-      copySync(
-        resolve(process.cwd(), 'wood/docker/nginx-default.conf'),
-        resolve(process.cwd(), 'nginx-default.conf'),
-      );
-
-      console.log('Your Docker files have been updated.');
-    }
   }
 }
 

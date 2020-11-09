@@ -44,7 +44,7 @@ class TestCommand extends Command {
     const wood = get(args, 'wood', false) ? 'cd wood && ' : '';
 
     const file = get(args._, 1, '');
-    spawn('sh', ['-c', `docker-compose run --rm api bash -c "yarn migrate-test && ${wood} yarn test ${file}"`], { stdio: 'inherit' });
+    spawn('sh', ['-c', `docker-compose -f wood/docker/docker-compose.yml run --rm  api bash -c "yarn migrate-test && ${wood} yarn test ${file}"`], { stdio: 'inherit' });
   }
 }
 
