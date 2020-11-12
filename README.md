@@ -9,7 +9,7 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 ### 0.10.0
 
 - Adds `nodewood test` command.
-- Modifies all docker commands to run from `wood/docker` directory directly.
+- Modifies all docker commands to run from `app/docker` or fall back to `wood/docker` directory directly.
 - Removes `nodewood up:docker` command.
 
 ### 0.9.1

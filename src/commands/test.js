@@ -3,6 +3,7 @@ const { spawn } = require('child_process');
 const { get } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
+const { getDockerConfigFolder } = require('../lib/docker');
 
 class TestCommand extends Command {
   /**
@@ -43,6 +44,8 @@ class TestCommand extends Command {
       return;
     }
 
+    const dockerFolder = getDockerConfigFolder();
+
     // Hidden flag, if we should test wood folder
     const wood = get(args, 'wood', false) ? 'cd wood && ' : '';
 
@@ -52,7 +55,7 @@ class TestCommand extends Command {
     // What file we should be testing
     const file = get(args._, 1, '');
 
-    spawn('sh', ['-c', `docker-compose -f wood/docker/docker-compose.yml run --rm  api bash -c "yarn migrate-test && ${wood} yarn test ${file} ${update}"`], { stdio: 'inherit' });
+    spawn('sh', ['-c', `docker-compose -f ${dockerFolder}/docker-compose.yml run --rm  api bash -c "yarn migrate-test && ${wood} yarn test ${file} ${update}"`], { stdio: 'inherit' });
   }
 }
 

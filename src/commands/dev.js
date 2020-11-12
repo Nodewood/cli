@@ -1,8 +1,8 @@
 const chalk = require('chalk');
 const { spawn } = require('child_process');
-const { get } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
+const { getDockerConfigFolder } = require('../lib/docker');
 
 class DevCommand extends Command {
   /**
@@ -37,7 +37,9 @@ class DevCommand extends Command {
       return;
     }
 
-    spawn('sh', ['-c', 'docker-compose -f wood/docker/docker-compose.yml up'], { stdio: 'inherit' });
+    const dockerFolder = getDockerConfigFolder();
+
+    spawn('sh', ['-c', `docker-compose -f ${dockerFolder}/docker-compose.yml up`], { stdio: 'inherit' });
   }
 }
 

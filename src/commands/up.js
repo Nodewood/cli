@@ -1,7 +1,7 @@
 const chalk = require('chalk');
-const { readJsonSync, copySync } = require('fs-extra');
+const { readJsonSync } = require('fs-extra');
 const { resolve } = require('path');
-const { last, get } = require('lodash');
+const { last } = require('lodash');
 const { gt, lte } = require('semver');
 const { prompt } = require('inquirer');
 const { Command } = require('../lib/Command');
