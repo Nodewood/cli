@@ -27,6 +27,9 @@ class TestCommand extends Command {
 
     console.log(chalk.yellow('\nParameters:'));
     console.log(`  ${chalk.cyan('FILE')}  # (Optional) Specific test file to run, or all if omitted.`);
+
+    console.log(chalk.yellow('\nOptions:'));
+    console.log(`  ${chalk.cyan('-u')}    # Updates Jest snapshots.`);
   }
 
   /**
@@ -43,8 +46,13 @@ class TestCommand extends Command {
     // Hidden flag, if we should test wood folder
     const wood = get(args, 'wood', false) ? 'cd wood && ' : '';
 
+    // If we should update snapshots
+    const update = get(args, 'u', false) ? '-u' : '';
+
+    // What file we should be testing
     const file = get(args._, 1, '');
-    spawn('sh', ['-c', `docker-compose -f wood/docker/docker-compose.yml run --rm  api bash -c "yarn migrate-test && ${wood} yarn test ${file}"`], { stdio: 'inherit' });
+
+    spawn('sh', ['-c', `docker-compose -f wood/docker/docker-compose.yml run --rm  api bash -c "yarn migrate-test && ${wood} yarn test ${file} ${update}"`], { stdio: 'inherit' });
   }
 }
 
