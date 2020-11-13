@@ -4,6 +4,7 @@ const superagent = require('superagent');
 const moment = require('moment');
 const { readJsonSync, emptyDirSync } = require('fs-extra');
 const { hmac } = require('../lib/hmac');
+const { fixScriptsMode } = require('../lib/file');
 const {
   createWriteStream,
   createReadStream,
@@ -84,6 +85,7 @@ async function installWood(path, apiKey, secretKey) {
 
   emptyDirSync(`${path}/wood`);
   await unzipZip(`${path}/wood.zip`, `${path}/wood`);
+  fixScriptsMode(path);
 
   return versions;
 }

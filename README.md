@@ -13,6 +13,7 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 - Removes `nodewood up:docker` command.
 - Fixes error where no command is given.
 - Provides docker-compose project name based on Nodewood project dir when starting docker containers.
+- Adds execute bit to extracted scripts when created new or upgrading project.
 
 ### 0.9.1
 
