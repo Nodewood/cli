@@ -1,4 +1,4 @@
-const { resolve } = require('path');
+const { resolve, basename } = require('path');
 
 /**
  * Confirms that the working folder is the root of a Nodewood project.
@@ -17,6 +17,16 @@ function isNodewoodProject() {
   }
 }
 
+/**
+ * Gets the folder name of the current Nodewood project.
+ *
+ * @return {String}
+ */
+function getProjectName() {
+  return basename(process.cwd()).replace('.', '');
+}
+
 module.exports = {
   isNodewoodProject,
+  getProjectName,
 };
