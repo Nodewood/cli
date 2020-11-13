@@ -95,7 +95,7 @@ class StripeCommand extends Command {
     this.localConfig = getLocalConfig();
     this.remoteConfig = await getRemoteConfig();
 
-    const type = get(args._, 0, false).split(':')[1];
+    const type = get(args._, 0, '').split(':')[1];
     if (type === 'diff') {
       const differences = calculateDifferences(this.localConfig, this.remoteConfig);
       await this.diff(differences);

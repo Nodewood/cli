@@ -115,7 +115,7 @@ class AddCommand extends Command {
       return;
     }
 
-    const toAdd = get(args._, 0, false).split(':')[1];
+    const toAdd = get(args._, 0, '').split(':')[1];
 
     const parsedArgs = {
       overwrite: get(args, 'overwrite', false),

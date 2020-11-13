@@ -15,7 +15,7 @@ console.log(chalk.yellow(figlet.textSync('Nodewood', { horizontalLayout: 'full' 
 console.log(`CLI Version ${packageObj.version}\n`);
 
 const args = require('minimist')(process.argv.slice(2));
-const command = get(args._, 0, false).split(':')[0];
+const command = get(args._, 0, '').split(':')[0];
 
 /**
  * If the command sent to the CLI is a valid command that we know how to handle.
