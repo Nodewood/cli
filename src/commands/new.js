@@ -1,6 +1,7 @@
 const chalk = require('chalk');
 const klawSync = require('klaw-sync');
-const { spawn, execSync } = require('child_process');
+const spawn = require('cross-spawn');
+const { execSync } = require('child_process');
 const { get, kebabCase, snakeCase, compact } = require('lodash');
 const { resolve: pathResolve, extname, basename } = require('path');
 const { prompt } = require('inquirer');
@@ -312,8 +313,8 @@ class NewCommand extends Command {
    */
   async areAllAppsInstalled() {
     const missingPrograms = compact(await Promise.all([
-      this.canRun('docker-compose --version', 'Docker'),
-      this.canRun('yarn --version', 'Yarn'),
+      this.canRun('docker-compose', ['--version'], 'Docker'),
+      this.canRun('yarn', ['--version'], 'Yarn'),
     ]));
 
     if (missingPrograms.length) {
@@ -334,13 +335,14 @@ class NewCommand extends Command {
    * Returns either the name of the program if it couldn't be run, or null if it could.
    *
    * @param {String} command - The command to attempt to run.
+   * @param {String} args - The args to pass to the command.
    * @param {String} program - The program we are checking for.
    *
    * @return {String|null}
    */
-  async canRun(command, program) {
+  async canRun(command, args, program) {
     return new Promise((resolve, reject) => {
-      const cmdProcess = spawn('sh', ['-c', command], { stdio: 'ignore' });
+      const cmdProcess = spawn(command, args, { stdio: 'ignore' });
       cmdProcess.on('close', (code) => {
         resolve(code > 0 ? program : null);
       });

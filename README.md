@@ -6,6 +6,10 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.10.1
+
+- Spawns commands directly, in order to better run on Windows.
+
 ### 0.10.0
 
 - Adds `nodewood test` command.

@@ -1,5 +1,5 @@
 const chalk = require('chalk');
-const { spawn } = require('child_process');
+const spawn = require('cross-spawn');
 const { get } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject, getProjectName } = require('../lib/file');
@@ -45,7 +45,7 @@ class MigrateCommand extends Command {
     const projectName = getProjectName();
 
     const env = get(args, 'test', false) ? '-test' : '';
-    spawn('sh', ['-c', `docker-compose -p ${projectName} -f ${dockerFolder}/docker-compose.yml run api /bin/bash -c "yarn migrate${env}"`], { stdio: 'inherit' });
+    spawn('docker-compose', ['-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'run', 'api', '/bin/bash', '-c', `yarn migrate${env}`], { stdio: 'inherit' });
   }
 }
 
