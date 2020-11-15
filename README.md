@@ -6,6 +6,10 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.10.3
+
+- Uses sync version of remove to delete downloaded zip files.
+
 ### 0.10.2
 
 - Improved error messages for missing programs.

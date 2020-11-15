@@ -8,7 +8,7 @@ const { fixScriptsMode } = require('../lib/file');
 const {
   createWriteStream,
   createReadStream,
-  remove,
+  removeSync,
 } = require('fs-extra');
 
 const URL_BASE = `https://${process.env.NODEWOOD_DOMAIN || 'nodewood.com'}/api/public`;
@@ -140,7 +140,7 @@ async function unzipZip(from, to) {
       .on('error', promisReject);
   });
 
-  await remove(from);
+  removeSync(from);
 }
 
 module.exports = {
