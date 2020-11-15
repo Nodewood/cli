@@ -6,6 +6,12 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.10.4
+
+- No longer attempts to template Vagrantfile on new project.
+- Downloads zipfiles outside of target folder to fix Windows delete bug.
+- Appends a random string of characters to downloaded zipfile to avoid conflicts.
+
 ### 0.10.3
 
 - Uses sync version of remove to delete downloaded zip files.

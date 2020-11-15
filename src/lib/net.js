@@ -11,6 +11,11 @@ const {
   removeSync,
 } = require('fs-extra');
 
+/**
+ * @type {String} Default characters for random strilg are just alphanumeric
+ */
+const DEFAULT_CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
 const URL_BASE = `https://${process.env.NODEWOOD_DOMAIN || 'nodewood.com'}/api/public`;
 const URL_SUFFIX_TEMPLATE = '/releases/templates/latest/download';
 const URL_SUFFIX_WOOD = '/releases/wood/latest/download';
@@ -43,6 +48,25 @@ function buildRequest(method, url, apiKey, secretKey) {
 }
 
 /**
+ * Get a string of random characters.
+ *
+ * @param {Number} length - The length of the string to get.
+ * @param {String} characters - The valid characters to choose from.
+ *
+ * @return {String}
+ */
+function randString(length, characters = DEFAULT_CHARACTERS) {
+  const charactersLength = characters.length;
+
+  let chosen = []; // eslint-disable-line prefer-const
+  for (let i = 0; i < length; i += 1) {
+    chosen.push(characters.charAt(Math.floor(Math.random() * charactersLength)));
+  }
+
+  return chosen.join('');
+}
+
+/**
  * Fetch the latest template from the Nodewood server and write it to the provided path.
  *
  * @param {String} path - The path to write the template to.
@@ -53,14 +77,16 @@ function buildRequest(method, url, apiKey, secretKey) {
  */
 async function installTemplate(path, apiKey, secretKey) {
   console.log('Installing application template...');
+
+  const zipfile = `${path}/../template-${randString(10)}.zip`;
   const versions = await downloadZip(
     `${URL_BASE}${URL_SUFFIX_TEMPLATE}`,
-    `${path}/template.zip`,
+    zipfile,
     apiKey,
     secretKey,
   );
 
-  await unzipZip(`${path}/template.zip`, path);
+  await unzipZip(zipfile, path);
 
   return versions;
 }
@@ -76,15 +102,17 @@ async function installTemplate(path, apiKey, secretKey) {
  */
 async function installWood(path, apiKey, secretKey) {
   console.log('Installing Nodewood library...');
+
+  const zipfile = `${path}/../wood-${randString(10)}.zip`;
   const versions = await downloadZip(
     `${URL_BASE}${URL_SUFFIX_WOOD}`,
-    `${path}/wood.zip`,
+    zipfile,
     apiKey,
     secretKey,
   );
 
   emptyDirSync(`${path}/wood`);
-  await unzipZip(`${path}/wood.zip`, `${path}/wood`);
+  await unzipZip(zipfile, `${path}/wood`);
   fixScriptsMode(path);
 
   return versions;

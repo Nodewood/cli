@@ -42,10 +42,6 @@ const EXTENSIONS_TO_TEMPLATE = [
   '.md',
 ];
 
-const BASENAMES_TO_EMPLATE = [
-  'Vagrantfile',
-];
-
 class NewCommand extends Command {
   /**
    * Returns the one-liner version of help text to display on the general help command.
@@ -302,8 +298,7 @@ class NewCommand extends Command {
    * @return {boolean}
    */
   shouldTemplateFile(file) {
-    return EXTENSIONS_TO_TEMPLATE.includes(extname(file.path))
-      || BASENAMES_TO_EMPLATE.includes(basename(file.path));
+    return EXTENSIONS_TO_TEMPLATE.includes(extname(file.path));
   }
 
   /**
