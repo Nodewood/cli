@@ -346,7 +346,7 @@ class NewCommand extends Command {
       cmdProcess.on('close', (code) => {
         resolve(code > 0 ? program : null);
       });
-      cmdProcess.on('error', (err) => reject(err));
+      cmdProcess.on('error', (err) => resolve(program));
     });
   }
 }
