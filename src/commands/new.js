@@ -3,7 +3,7 @@ const klawSync = require('klaw-sync');
 const spawn = require('cross-spawn');
 const { execSync } = require('child_process');
 const { get, kebabCase, snakeCase, compact } = require('lodash');
-const { resolve: pathResolve, extname, basename } = require('path');
+const { resolve: pathResolve, extname } = require('path');
 const { prompt } = require('inquirer');
 const {
   readdirSync,

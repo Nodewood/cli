@@ -1,11 +1,15 @@
 const chalk = require('chalk');
 const { readJsonSync } = require('fs-extra');
 const { resolve } = require('path');
-const { last } = require('lodash');
+const { get, last } = require('lodash');
 const { gt, lte } = require('semver');
 const { prompt } = require('inquirer');
 const { Command } = require('../lib/Command');
-const { isNodewoodProject } = require('../lib/file');
+const {
+  isNodewoodProject,
+  getTailwindClassList,
+  updateTailwindClasses,
+} = require('../lib/file');
 const {
   buildRequest,
   installWood,
@@ -79,7 +83,9 @@ class UpCommand extends Command {
 
     await installWood(process.cwd(), apiKey, secretKey);
 
-    console.log(`Your Nodewood installation has been upgraded to ${chalk.cyan(targetRelease.version)}.`);
+    addTailwindPrefix();
+
+    console.log(`\nYour Nodewood installation has been upgraded to ${chalk.cyan(targetRelease.version)}.`);
   }
 }
 
@@ -173,6 +179,29 @@ async function confirmUpgradeTo(version) {
   });
 
   return answers.confirm;
+}
+
+/**
+ * If a Tailwind prefix is specified, add that prefix to all files in `wood`.
+ */
+function addTailwindPrefix() {
+  const prefix = getTailwindPrefix();
+  if (prefix !== false) {
+    console.log(`Adding prefix '${chalk.cyan(prefix)}' to Tailwind CSS classes...`);
+    const classList = getTailwindClassList();
+    updateTailwindClasses(resolve(process.cwd(), 'wood'), prefix, classList);
+  }
+}
+
+/**
+ * Get the prefix defined for Tailwind classes, if any.
+ *
+ * @return {String|Boolean}
+ */
+function getTailwindPrefix() {
+  const tailwindConfig = require(resolve(process.cwd(), 'app/tailwind.config.js')); // eslint-disable-line global-require
+
+  return get(tailwindConfig, 'prefix', false);
 }
 
 module.exports = {

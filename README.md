@@ -6,6 +6,11 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.11.0
+
+- Adds `nodewood tailwind:prefix` command.
+- Adds prefix to Tailwind CSS classes in `wood` folder on upgrade, if defined in Tailwind config.
+
 ### 0.10.4
 
 - No longer attempts to template Vagrantfile on new project.
