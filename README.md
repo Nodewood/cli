@@ -4,6 +4,11 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 [Documentation can be found on the Nodewood website](https://nodewood.com/docs/master/getting-started/cli/)
 
+## Unreleased
+
+- Adds better error messaging for when the Nodewood server is down.
+- Adds useful information after performing an upgrade.
+
 ## Releases
 
 ### 0.11.0

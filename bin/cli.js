@@ -75,9 +75,23 @@ function isInvalidHelpCommand(checkCommand, checkArgs, checkCommands) {
 
         console.log(`Error message: ${errorMessage}`);
       }
+      else if (couldNotConnect(error)) {
+        console.log('Could not connect to the Nodewood server.  It may be temporarily down for an update.');
+      }
       else {
         console.log(`Error message: ${error.message}`);
       }
     }
   }
 })();
+
+/**
+ * If the error in question indicates that we could not connect to the Nodewood server.
+ *
+ * @param {Error} error - The error to examine.
+ *
+ * @return {Boolean}
+ */
+function couldNotConnect(error) {
+  return ((error.code && error.code === 'ECONNREFUSED') || (error.status && error.status === 502));
+}
