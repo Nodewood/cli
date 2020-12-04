@@ -8,6 +8,7 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 - Adds better error messaging for when the Nodewood server is down.
 - Adds useful information after performing an upgrade.
+- Displays command help when expected command suffix is absent.
 
 ## Releases
 

@@ -1,6 +1,7 @@
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
 const { resolve } = require('path');
+const { get } = require('lodash');
 const { Command } = require('../lib/Command');
 const {
   isNodewoodProject,
@@ -41,17 +42,23 @@ class TailwindCommand extends Command {
       return;
     }
 
-    console.log(chalk.red('Please make sure you have committed all current changes to source control before you begin.'));
+    const type = get(args._, 0, '').split(':')[1];
+    if (type === 'prefix') {
+      console.log(chalk.red('Please make sure you have committed all current changes to source control before you begin.'));
 
-    const prefix = await this.getPrefix();
-    const classList = getTailwindClassList();
+      const prefix = await this.getPrefix();
+      const classList = getTailwindClassList();
 
-    ['wood', 'app'].forEach(
-      (folder) => updateTailwindClasses(resolve(process.cwd(), folder), prefix, classList),
-    );
+      ['wood', 'app'].forEach(
+        (folder) => updateTailwindClasses(resolve(process.cwd(), folder), prefix, classList),
+      );
 
-    console.log(chalk.yellow(`\nMake sure to update your ${chalk.cyan('app/tailwind.config.css')} with the following line:`));
-    console.log(chalk.cyan(`  prefix: '${prefix}',`));
+      console.log(chalk.yellow(`\nMake sure to update your ${chalk.cyan('app/tailwind.config.css')} with the following line:`));
+      console.log(chalk.cyan(`  prefix: '${prefix}',`));
+    }
+    else {
+      this.helpDetailed();
+    }
   }
 
   /**

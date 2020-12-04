@@ -147,6 +147,11 @@ class AddCommand extends Command {
       const feature = get(args._, 1, false);
       const name = get(args._, 2, false);
 
+      if (! toAdd) {
+        this.helpDetailed();
+        return;
+      }
+
       if (! existsSync(resolve((process.cwd(), `app/features/${feature}`)))) {
         console.log(chalk.red(`Feature '${feature}' does not exist at 'app/features/${feature}'.`));
         return;

@@ -80,7 +80,14 @@ class NewCommand extends Command {
     }
 
     const overwrite = get(args, 'overwrite', false);
-    const path = pathResolve(process.cwd(), get(args._, 1, false));
+    const pathArg = get(args._, 1, false);
+
+    if (! pathArg) {
+      this.helpDetailed();
+      return;
+    }
+
+    const path = pathResolve(process.cwd(), pathArg);
 
     if (! overwrite && ! this.isEmptyDirectory(path)) {
       console.log(chalk.red(`Directory '${chalk.cyan(path)}' must be empty.`));

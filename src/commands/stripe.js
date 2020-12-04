@@ -107,6 +107,9 @@ class StripeCommand extends Command {
     else if (type === 'import') {
       await this.import();
     }
+    else if (! type) {
+      this.helpDetailed();
+    }
     else {
       console.log(chalk.red(`Invalid stripe command: '${type}'.`));
     }
