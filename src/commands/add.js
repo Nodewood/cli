@@ -152,7 +152,7 @@ class AddCommand extends Command {
         return;
       }
 
-      if (! existsSync(resolve((process.cwd(), `app/features/${feature}`)))) {
+      if (! existsSync(resolve(process.cwd(), `app/features/${feature}`))) {
         console.log(chalk.red(`Feature '${feature}' does not exist at 'app/features/${feature}'.`));
         return;
       }

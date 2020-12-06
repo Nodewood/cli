@@ -1,5 +1,6 @@
 const { AddCommand } = require('../commands/add');
 const { DevCommand } = require('../commands/dev');
+const { EjectCommand } = require('../commands/eject');
 const { MigrateCommand } = require('../commands/migrate');
 const { RollbackCommand } = require('../commands/rollback');
 const { StripeCommand } = require('../commands/stripe');
@@ -11,6 +12,7 @@ const { UpCommand } = require('../commands/up');
 module.exports = {
   add: AddCommand,
   dev: DevCommand,
+  eject: EjectCommand,
   migrate: MigrateCommand,
   rollback: RollbackCommand,
   stripe: StripeCommand,
