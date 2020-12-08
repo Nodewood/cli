@@ -543,7 +543,7 @@ class AddCommand extends Command {
   addStore(feature, name, { customPlural, overwrite, init } = {}) {
     this.addTemplateFile(
       'wood/templates/store/Store.js',
-      'app/features/<%= featureName %>/ui/stores/<%= fileName %>Store.js',
+      'app/features/<%= featureName %>/ui/stores/<%= fileNamePlural %>Store.js',
       'store',
       feature,
       name,
@@ -555,7 +555,7 @@ class AddCommand extends Command {
       this.deleteFile(
         feature,
         name,
-        'app/features/<%= featureName %>/ui/stores/<%= fileName %>Store.js',
+        'app/features/<%= featureName %>/ui/stores/<%= fileNamePlural %>Store.js',
       );
       console.log(chalk.red('Store removed.'));
     }

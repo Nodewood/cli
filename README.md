@@ -8,6 +8,10 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.12.2
+
+- Updates added Stores to use plural of provided name.
+
 ### 0.12.1
 
 - Updates docs links to new location on website.
