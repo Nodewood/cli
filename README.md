@@ -2,7 +2,7 @@
 
 Command-line interface for installing and managing [Nodewood](https://nodewood.com) projects.
 
-[Documentation can be found on the Nodewood website](https://nodewood.com/docs/master/getting-started/cli/)
+[Documentation can be found on the Nodewood website](https://nodewood.com/docs/getting-started/cli/)
 
 ## Unreleased
 

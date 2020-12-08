@@ -124,7 +124,7 @@ class NewCommand extends Command {
       console.log(chalk.yellow(`Log in to your account at ${chalk.cyan('https://nodewood.com')} and purchase an extension to your license to download the latest updates.`)); // eslint-disable-line max-len
     }
 
-    console.log('\n To continue the installation, visit https://nodewood.com/docs/master/getting-started/installation/.');
+    console.log('\n To continue the installation, visit https://nodewood.com/docs/getting-started/installation/.');
   }
 
   /**
