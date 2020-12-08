@@ -8,6 +8,10 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.12.1
+
+- Updates docs links to new location on website.
+
 ### 0.12.0
 
 - Adds better error messaging for when the Nodewood server is down.
