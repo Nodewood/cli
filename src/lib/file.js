@@ -26,6 +26,10 @@ function isNodewoodProject() {
     return true;
   }
   catch (error) {
+    if (process.env.NODE_DEV === 'development') {
+      console.log(error);
+    }
+
     return false;
   }
 }
