@@ -9,6 +9,7 @@ const {
   snakeCase,
   upperFirst,
   template,
+  words,
 } = require('lodash');
 const { resolve, extname } = require('path');
 const {
@@ -44,10 +45,12 @@ const TEMPLATE_KEYS = {
   '###_PASCAL_NAME_###': 'file.pascalName', // ApiToken
   '###_KEBAB_NAME_###': 'file.kebabName', // api-token
   '###_SNAKE_NAME_###': 'file.snakeName', // api_token
+  '###_UC_NAME_###': 'file.ucName', // Api Token
   '###_CAMEL_PLURAL_NAME_###': 'file.camelPluralName', // apiTokens
   '###_PASCAL_PLURAL_NAME_###': 'file.pascalPluralName', // ApiTokens
   '###_KEBAB_PLURAL_NAME_###': 'file.kebabPluralName', // api-tokens
   '###_SNAKE_PLURAL_NAME_###': 'file.snakePluralName', // api_tokens
+  '###_UC_PLURAL_NAME_###': 'file.ucPluralName', // Api Tokens
 
   '###_FEATURE_SINGULAR_NAME_###': 'feature.singularName',
   '###_FEATURE_PLURAL_NAME_###': 'feature.pluralName',
@@ -55,10 +58,12 @@ const TEMPLATE_KEYS = {
   '###_FEATURE_PASCAL_NAME_###': 'feature.pascalName',
   '###_FEATURE_KEBAB_NAME_###': 'feature.kebabName',
   '###_FEATURE_SNAKE_NAME_###': 'feature.snakeName',
+  '###_FEATURE_UC_NAME_###': 'feature.ucName', // Api Token
   '###_FEATURE_CAMEL_PLURAL_NAME_###': 'feature.camelPluralName',
   '###_FEATURE_PASCAL_PLURAL_NAME_###': 'feature.pascalPluralName',
   '###_FEATURE_KEBAB_PLURAL_NAME_###': 'feature.kebabPluralName',
   '###_FEATURE_SNAKE_PLURAL_NAME_###': 'feature.snakePluralName',
+  '###_FEATURE_UC_PLURAL_NAME_###': 'feature.ucPluralName', // Api Tokens
 };
 
 class AddCommand extends Command {
@@ -206,11 +211,13 @@ class AddCommand extends Command {
       pascalName: upperFirst(camelCase(singularName)),
       kebabName: kebabCase(singularName),
       snakeName: snakeCase(singularName),
+      ucName: words(singularName).map(upperFirst).join(' '),
 
       camelPluralName: camelCase(pluralName),
       pascalPluralName: upperFirst(camelCase(pluralName)),
       kebabPluralName: kebabCase(pluralName),
       snakePluralName: snakeCase(pluralName),
+      ucPluralName: words(pluralName).map(upperFirst).join(' '),
     };
   }
 
@@ -285,7 +292,7 @@ class AddCommand extends Command {
       this.addController(name, name, { customPlural: name, overwrite });
       this.addService(name, name, { customPlural: name, overwrite });
       this.addPage(name, name, { customPlural: name, overwrite, init: true });
-      this.addDialog(name, name, { customPlural: name, overwrite });
+      this.addNewDialog(name, name, { customPlural: name, overwrite });
       this.addStore(name, name, { customPlural: name, overwrite, init: true });
       this.addFormValidator(name, name, { customPlural: name, overwrite });
       this.addModel(name, name, { customPlural: name, overwrite });
@@ -523,6 +530,26 @@ class AddCommand extends Command {
     this.addTemplateFile(
       'wood/templates/dialog/Dialog.vue',
       'app/features/<%= featureName %>/ui/dialogs/<%= fileName %>Dialog.vue',
+      'dialog',
+      feature,
+      name,
+      customPlural,
+      overwrite,
+    );
+  }
+
+  /**
+   * Add a "new" dialog.
+   *
+   * @param {String} feature - The name of the feature to add the dialog to.
+   * @param {String} name - The name of the dialog to add.
+   * @param {String} customPlural - A user-provided custom plural (or false for none).
+   * @param {Boolean} overwrite - If we should overwrite the dialog.
+   */
+  addNewDialog(feature, name, { customPlural, overwrite } = {}) {
+    this.addTemplateFile(
+      'wood/templates/dialog/NewDialog.vue',
+      'app/features/<%= featureName %>/ui/dialogs/New<%= fileName %>Dialog.vue',
       'dialog',
       feature,
       name,

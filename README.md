@@ -6,6 +6,8 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
+- Modifies `add:feature` to create a more fully-functional feature.
+
 ## Releases
 
 ### 0.12.2
