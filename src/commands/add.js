@@ -293,6 +293,8 @@ class AddCommand extends Command {
       this.addService(name, name, { customPlural: name, overwrite });
       this.addPage(name, name, { customPlural: name, overwrite, init: true });
       this.addNewDialog(name, name, { customPlural: name, overwrite });
+      this.addEditDialog(name, name, { customPlural: name, overwrite });
+      this.addDeleteDialog(name, name, { customPlural: name, overwrite });
       this.addStore(name, name, { customPlural: name, overwrite, init: true });
       this.addFormValidator(name, name, { customPlural: name, overwrite });
       this.addModel(name, name, { customPlural: name, overwrite });
@@ -550,6 +552,46 @@ class AddCommand extends Command {
     this.addTemplateFile(
       'wood/templates/dialog/NewDialog.vue',
       'app/features/<%= featureName %>/ui/dialogs/New<%= fileName %>Dialog.vue',
+      'dialog',
+      feature,
+      name,
+      customPlural,
+      overwrite,
+    );
+  }
+
+  /**
+   * Add an "edit" dialog.
+   *
+   * @param {String} feature - The name of the feature to add the dialog to.
+   * @param {String} name - The name of the dialog to add.
+   * @param {String} customPlural - A user-provided custom plural (or false for none).
+   * @param {Boolean} overwrite - If we should overwrite the dialog.
+   */
+  addEditDialog(feature, name, { customPlural, overwrite } = {}) {
+    this.addTemplateFile(
+      'wood/templates/dialog/EditDialog.vue',
+      'app/features/<%= featureName %>/ui/dialogs/Edit<%= fileName %>Dialog.vue',
+      'dialog',
+      feature,
+      name,
+      customPlural,
+      overwrite,
+    );
+  }
+
+  /**
+   * Add a "delete" dialog.
+   *
+   * @param {String} feature - The name of the feature to add the dialog to.
+   * @param {String} name - The name of the dialog to add.
+   * @param {String} customPlural - A user-provided custom plural (or false for none).
+   * @param {Boolean} overwrite - If we should overwrite the dialog.
+   */
+  addDeleteDialog(feature, name, { customPlural, overwrite } = {}) {
+    this.addTemplateFile(
+      'wood/templates/dialog/DeleteDialog.vue',
+      'app/features/<%= featureName %>/ui/dialogs/Delete<%= fileName %>Dialog.vue',
       'dialog',
       feature,
       name,
