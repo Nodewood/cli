@@ -6,6 +6,8 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
+- Removes temporary API containers after migrate/rollback.
+
 ## Releases
 
 ### 0.13.0

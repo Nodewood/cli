@@ -45,7 +45,7 @@ class MigrateCommand extends Command {
     const projectName = getProjectName();
 
     const env = get(args, 'test', false) ? '-test' : '';
-    spawn('docker-compose', ['-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'run', 'api', '/bin/bash', '-c', `yarn migrate${env}`], { stdio: 'inherit' });
+    spawn('docker-compose', ['-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'run', '--rm', 'api', '/bin/bash', '-c', `yarn migrate${env}`], { stdio: 'inherit' });
   }
 }
 
