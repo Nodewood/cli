@@ -8,6 +8,7 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 - Removes temporary API containers after migrate/rollback.
 - Updates config file location for feature add explainer text.
+- Updates example migrate command after adding new feature.
 
 ## Releases
 

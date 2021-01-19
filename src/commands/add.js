@@ -324,7 +324,7 @@ class AddCommand extends Command {
 
     console.log('Migration created at:');
     console.log(chalk.cyan(targetPath));
-    console.log(`\nAfter editing, make sure to run migrations with ${chalk.cyan('yarn migrate')} and restart your API server.`); // eslint-disable-line max-len
+    console.log(`\nAfter editing, make sure to run migrations with ${chalk.cyan('nodewood migrate')} and restart your API server.`); // eslint-disable-line max-len
   }
 
   /**
