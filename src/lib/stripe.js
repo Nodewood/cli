@@ -59,13 +59,13 @@ function getLocalConfig() {
     ).filter((price) => price.product);
 
     const taxesConfig = readJsonSync(resolve(process.cwd(), 'app/config/stripe/taxes.json'));
-    config.taxes = Object.keys(taxesConfig.countries).flatMap(
+    config.taxes = Object.keys(get(taxesConfig, 'countries', {})).flatMap(
       (countryKey) => taxesConfig.countries[countryKey].map((taxConfig) => ({
         jurisdiction: countries[countryKey],
         ...taxConfig,
       })),
-    ).concat(Object.keys(taxesConfig.states).flatMap(
-      (countryKey) => Object.keys(taxesConfig.states[countryKey]).flatMap(
+    ).concat(Object.keys(get(taxesConfig, 'states', {})).flatMap(
+      (countryKey) => Object.keys(get(taxesConfig, 'states[countryKey]', {})).flatMap(
         (stateKey) => taxesConfig.states[countryKey][stateKey].map((taxConfig) => ({
           jurisdiction: `${stateKey}, ${countries[countryKey]}`,
           ...taxConfig,
