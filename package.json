@@ -30,6 +30,7 @@
     "minimist": "1.2.5",
     "moment": "^2.24.0",
     "pluralize": "8.0.0",
+    "semver": "^7.3.4",
     "stripe": "^8.69.0",
     "superagent": "^5.2.2",
     "unzipper": "^0.10.11"

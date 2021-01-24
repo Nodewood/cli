@@ -3,6 +3,7 @@ require('dotenv').config();
 
 const chalk = require('chalk');
 const figlet = require('figlet');
+const { gt } = require('semver');
 const { get } = require('lodash');
 const { readJsonSync } = require('fs-extra');
 const { resolve } = require('path');
@@ -16,6 +17,8 @@ console.log(`CLI Version ${packageObj.version}\n`);
 
 const args = require('minimist')(process.argv.slice(2));
 const command = get(args._, 0, '').split(':')[0];
+
+const REQUIRED_NODE_VERSION = '12.0.0';
 
 /**
  * If the command sent to the CLI is a valid command that we know how to handle.
@@ -44,9 +47,23 @@ function isInvalidHelpCommand(checkCommand, checkArgs, checkCommands) {
   return checkCommand === 'help' && ! Object.keys(checkCommands).includes(helpCommand);
 }
 
+/**
+ * Identify if the user's active Node version is too low.
+ *
+ * @return {Boolean}
+ */
+function isInvalidNodeVersion() {
+  return ! gt(process.version, REQUIRED_NODE_VERSION);
+}
+
 (async () => {
+  // Show invalid version help
+  if (isInvalidNodeVersion()) {
+    console.log(`Your version of Node.js ${chalk.red(`(${process.version})`)} is lower than the required version to run Nodewood ${chalk.green(`(${REQUIRED_NODE_VERSION})`)}.`);
+    console.log('Please upgrade your version of Node.js');
+  }
   // Display generic help
-  if (isInvalidCommand(command, commands) || isInvalidHelpCommand(command, args, commands)) {
+  else if (isInvalidCommand(command, commands) || isInvalidHelpCommand(command, args, commands)) {
     showHelp(commands);
   }
   // Display detailed help
