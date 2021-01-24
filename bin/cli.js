@@ -5,20 +5,32 @@ const chalk = require('chalk');
 const figlet = require('figlet');
 const { gt } = require('semver');
 const { get } = require('lodash');
-const { readJsonSync } = require('fs-extra');
+const { existsSync, readJsonSync } = require('fs-extra');
 const { resolve } = require('path');
 const commands = require('../src/lib/commands');
 const { showHelp, showDetailedHelp } = require('../src/lib/help');
-
-const packageObj = readJsonSync(resolve(__dirname, '../package.json'));
-
-console.log(chalk.yellow(figlet.textSync('Nodewood', { horizontalLayout: 'full' })));
-console.log(`CLI Version ${packageObj.version}\n`);
 
 const args = require('minimist')(process.argv.slice(2));
 const command = get(args._, 0, '').split(':')[0];
 
 const REQUIRED_NODE_VERSION = '12.0.0';
+
+/**
+ * Displays the CLI header including CLI version and local Nodewood library version (if applicable).
+ */
+function displayHeader() {
+  console.log(chalk.yellow(figlet.textSync('Nodewood', { horizontalLayout: 'full' })));
+
+  const packageObj = readJsonSync(resolve(__dirname, '../package.json'));
+  console.log(`CLI Version ${packageObj.version}`);
+
+  if (existsSync(resolve(process.cwd(), 'wood/package.json'))) {
+    const nodewoodObj = readJsonSync(resolve(process.cwd(), 'wood/package.json'));
+    console.log(`Library Version ${nodewoodObj.version}`);
+  }
+
+  console.log(''); // Final newline
+}
 
 /**
  * If the command sent to the CLI is a valid command that we know how to handle.
@@ -57,6 +69,8 @@ function isInvalidNodeVersion() {
 }
 
 (async () => {
+  displayHeader();
+
   // Show invalid version help
   if (isInvalidNodeVersion()) {
     console.log(`Your version of Node.js ${chalk.red(`(${process.version})`)} is lower than the required version to run Nodewood ${chalk.green(`(${REQUIRED_NODE_VERSION})`)}.`);

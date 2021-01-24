@@ -11,6 +11,7 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 - Updates example migrate command after adding new feature.
 - Fixes issue where Stripe diff would fail with empty tax list.
 - Adds check for minimum version of Node.js.
+- Displays local Nodewood library version, if applicable.
 
 ## Releases
 
