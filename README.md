@@ -6,14 +6,16 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
+## Releases
+
+### 0.13.1
+
 - Removes temporary API containers after migrate/rollback.
 - Updates config file location for feature add explainer text.
 - Updates example migrate command after adding new feature.
 - Fixes issue where Stripe diff would fail with empty tax list.
 - Adds check for minimum version of Node.js.
 - Displays local Nodewood library version, if applicable.
-
-## Releases
 
 ### 0.13.0
 
