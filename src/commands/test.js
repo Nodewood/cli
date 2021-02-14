@@ -3,7 +3,7 @@ const spawn = require('cross-spawn');
 const { get } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject, getProjectName } = require('../lib/file');
-const { getDockerConfigFolder } = require('../lib/docker');
+const { getDockerCompose, getDockerConfigFolder } = require('../lib/docker');
 
 class TestCommand extends Command {
   /**
@@ -44,6 +44,7 @@ class TestCommand extends Command {
       return;
     }
 
+    const { composeCommand, composeArgs } = getDockerCompose();
     const dockerFolder = getDockerConfigFolder();
     const projectName = getProjectName();
 
@@ -56,7 +57,7 @@ class TestCommand extends Command {
     // What file we should be testing
     const file = get(args._, 1, '');
 
-    spawn('docker-compose', ['-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'run', '--rm', 'api', 'bash', '-c', `yarn migrate-test && ${wood} yarn test ${file} ${update}`], { stdio: 'inherit' });
+    spawn(composeCommand, [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'run', '--rm', 'api', 'bash', '-c', `yarn migrate-test && ${wood} yarn test ${file} ${update}`], { stdio: 'inherit' });
   }
 }
 

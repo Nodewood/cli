@@ -2,7 +2,7 @@ const chalk = require('chalk');
 const spawn = require('cross-spawn');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject, getProjectName } = require('../lib/file');
-const { getDockerConfigFolder } = require('../lib/docker');
+const { getDockerCompose, getDockerConfigFolder } = require('../lib/docker');
 
 class DevCommand extends Command {
   /**
@@ -37,10 +37,14 @@ class DevCommand extends Command {
       return;
     }
 
+    const { composeCommand, composeArgs } = getDockerCompose();
     const dockerFolder = getDockerConfigFolder();
     const projectName = getProjectName();
 
-    spawn('docker-compose', ['-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'up'], { stdio: 'inherit' });
+    console.log(composeCommand);
+    console.log(composeArgs);
+
+    spawn(composeCommand, [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'up'], { stdio: 'inherit' });
   }
 }
 

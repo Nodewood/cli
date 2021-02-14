@@ -3,7 +3,7 @@ const spawn = require('cross-spawn');
 const { get } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject, getProjectName } = require('../lib/file');
-const { getDockerConfigFolder } = require('../lib/docker');
+const { getDockerCompose, getDockerConfigFolder } = require('../lib/docker');
 
 class MigrateCommand extends Command {
   /**
@@ -41,11 +41,12 @@ class MigrateCommand extends Command {
       return;
     }
 
+    const { composeCommand, composeArgs } = getDockerCompose();
     const dockerFolder = getDockerConfigFolder();
     const projectName = getProjectName();
 
     const env = get(args, 'test', false) ? '-test' : '';
-    spawn('docker-compose', ['-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'run', '--rm', 'api', '/bin/bash', '-c', `yarn migrate${env}`], { stdio: 'inherit' });
+    spawn(composeCommand, [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'run', '--rm', 'api', '/bin/bash', '-c', `yarn migrate${env}`], { stdio: 'inherit' });
   }
 }
 
