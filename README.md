@@ -8,6 +8,10 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.13.3
+
+- Removes superfluous logs issued during `nodewood dev`.
+
 ### 0.13.2
 
 - Adds support for alternate docker-compose commands.

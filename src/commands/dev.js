@@ -41,9 +41,6 @@ class DevCommand extends Command {
     const dockerFolder = getDockerConfigFolder();
     const projectName = getProjectName();
 
-    console.log(composeCommand);
-    console.log(composeArgs);
-
     spawn(composeCommand, [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'up'], { stdio: 'inherit' });
   }
 }
