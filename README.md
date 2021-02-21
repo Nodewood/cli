@@ -6,6 +6,8 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
+- Updates & installs dependencies in `app/package.json` when updating Nodewood library.
+
 ## Releases
 
 ### 0.13.3

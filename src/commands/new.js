@@ -1,7 +1,6 @@
 const chalk = require('chalk');
 const klawSync = require('klaw-sync');
 const spawn = require('cross-spawn');
-const { execSync } = require('child_process');
 const { get, kebabCase, snakeCase, compact } = require('lodash');
 const { resolve: pathResolve, extname } = require('path');
 const { prompt } = require('inquirer');
@@ -15,6 +14,7 @@ const {
   copySync,
 } = require('fs-extra');
 const { Command } = require('../lib/Command');
+const { yarnInstall } = require('../lib/file');
 const {
   buildRequest,
   installTemplate,
@@ -106,7 +106,7 @@ class NewCommand extends Command {
     await this.templateFiles(path, project, apiKey, secretKey);
     await this.writeConfigFile(path, { ...project, apiKey, secretKey });
     await this.copyEnvFile(path);
-    await this.yarnInstall(path);
+    yarnInstall(path);
 
     console.log('New project created at:');
     console.log(chalk.cyan(path));
@@ -169,19 +169,6 @@ class NewCommand extends Command {
       pathResolve(path, '.env.template'),
       pathResolve(path, '.env'),
     );
-  }
-
-  /**
-   * Install node modules so first-run of Docker works as expected.
-   *
-   * @param {String} path - The project path to install node_modules for.
-   */
-  yarnInstall(path) {
-    console.log('Installing node modules...');
-    execSync('yarn install', {
-      cwd: path,
-      stdio: 'inherit',
-    });
   }
 
   /**

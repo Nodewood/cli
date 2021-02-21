@@ -9,12 +9,14 @@ const {
   isNodewoodProject,
   getTailwindClassList,
   updateTailwindClasses,
+  yarnInstall,
 } = require('../lib/file');
 const {
   buildRequest,
   installWood,
   URL_BASE,
 } = require('../lib/net');
+const { updateAppDependencies } = require('../lib/package');
 
 class UpCommand extends Command {
   /**
@@ -84,6 +86,9 @@ class UpCommand extends Command {
     await installWood(process.cwd(), apiKey, secretKey);
 
     addTailwindPrefix();
+
+    updateAppDependencies();
+    yarnInstall(process.cwd());
 
     console.log(`\nYour Nodewood installation has been upgraded to ${chalk.cyan(targetRelease.version)}.`);
     console.log(`\nPlease make sure to run ${chalk.cyan('yarn install')} to ensure new packages are installed.`);

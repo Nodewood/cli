@@ -1,6 +1,7 @@
 const chalk = require('chalk');
 const { resolve, basename, extname } = require('path');
 const { existsSync, chmodSync, readFileSync, writeFileSync } = require('fs-extra');
+const { execSync } = require('child_process');
 const { first, uniq, compact } = require('lodash');
 const { parse } = require('css');
 const klawSync = require('klaw-sync');
@@ -111,10 +112,25 @@ function updateTailwindClasses(path, prefix, classList) {
   });
 }
 
+/**
+ * Install node modules.
+ *
+ * @param {String} path - The project path to install node_modules for.
+ */
+function yarnInstall(path) {
+  console.log('Installing node modules...');
+  execSync('yarn install', {
+    cwd: path,
+    stdio: 'inherit',
+  });
+}
+
+
 module.exports = {
   isNodewoodProject,
   getProjectName,
   fixScriptsMode,
   getTailwindClassList,
   updateTailwindClasses,
+  yarnInstall,
 };
