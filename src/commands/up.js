@@ -91,7 +91,6 @@ class UpCommand extends Command {
     yarnInstall(process.cwd());
 
     console.log(`\nYour Nodewood installation has been upgraded to ${chalk.cyan(targetRelease.version)}.`);
-    console.log(`\nPlease make sure to run ${chalk.cyan('yarn install')} to ensure new packages are installed.`);
     console.log(`\nYou may need to add the ${chalk.cyan('--no-verify')} flag to your next git commit, since it will try to prevent you from committing any changes to your ${chalk.cyan('wood')} folder.`);
   }
 }
