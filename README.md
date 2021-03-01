@@ -8,6 +8,10 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.14.1
+
+- Removes instructions to run `yarn install`.
+
 ### 0.14.0
 
 - Updates & installs dependencies in `app/package.json` when updating Nodewood library.
