@@ -65,7 +65,7 @@ function getLocalConfig() {
         ...taxConfig,
       })),
     ).concat(Object.keys(get(taxesConfig, 'states', {})).flatMap(
-      (countryKey) => Object.keys(get(taxesConfig, 'states[countryKey]', {})).flatMap(
+      (countryKey) => Object.keys(get(taxesConfig, `states[${countryKey}]`, {})).flatMap(
         (stateKey) => taxesConfig.states[countryKey][stateKey].map((taxConfig) => ({
           jurisdiction: `${stateKey}, ${countries[countryKey]}`,
           ...taxConfig,
