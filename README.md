@@ -6,9 +6,11 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
-- Fixes a bug when loading local state-level taxes.
-
 ## Releases
+
+### 0.14.2
+
+- Fixes a bug when loading local state-level taxes.
 
 ### 0.14.1
 
