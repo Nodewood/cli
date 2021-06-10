@@ -6,10 +6,13 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
+## Releases
+
+### 0.15.0
+
 - Adds `-d` option to `dev` command to allow for detached mode.
 - Adds `stop` command to stop projects running in detached mode.
-
-## Releases
+- Bumps glob-parent from 5.1.1 to 5.1.2.
 
 ### 0.14.2
 
