@@ -6,6 +6,9 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
+- Adds `-d` option to `dev` command to allow for detached mode.
+- Adds `stop` command to stop projects running in detached mode.
+
 ## Releases
 
 ### 0.14.2

@@ -5,14 +5,14 @@ const { Command } = require('../lib/Command');
 const { isNodewoodProject, getProjectName } = require('../lib/file');
 const { getDockerCompose, getDockerConfigFolder } = require('../lib/docker');
 
-class DevCommand extends Command {
+class StopCommand extends Command {
   /**
    * Returns the one-liner version of help text to display on the general help command.
    *
    * @return {String}
    */
   helpLine() {
-    return 'Start the development server using docker-compose.';
+    return 'Stops a detached (backgrounded) development server.';
   }
 
   /**
@@ -24,10 +24,7 @@ class DevCommand extends Command {
     console.log(this.helpLine());
 
     console.log(chalk.yellow('\nUsage:'));
-    console.log('  nodewood dev');
-
-    console.log(chalk.yellow('\nOptions:'));
-    console.log(`  ${chalk.cyan('-d')}    # Run in detached (background) mode.`);
+    console.log('  nodewood stop');
   }
 
   /**
@@ -45,12 +42,10 @@ class DevCommand extends Command {
     const dockerFolder = getDockerConfigFolder();
     const projectName = getProjectName();
 
-    const detached = get(args, 'd', false) ? '-d' : '';
-
-    spawn(composeCommand, [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'up', detached], { stdio: 'inherit' });
+    spawn(composeCommand, [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'stop'], { stdio: 'inherit' });
   }
 }
 
 module.exports = {
-  DevCommand,
+  StopCommand,
 };

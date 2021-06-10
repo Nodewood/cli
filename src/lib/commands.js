@@ -3,6 +3,7 @@ const { DevCommand } = require('../commands/dev');
 const { EjectCommand } = require('../commands/eject');
 const { MigrateCommand } = require('../commands/migrate');
 const { RollbackCommand } = require('../commands/rollback');
+const { StopCommand } = require('../commands/stop');
 const { StripeCommand } = require('../commands/stripe');
 const { TailwindCommand } = require('../commands/tailwind');
 const { TestCommand } = require('../commands/test');
@@ -15,6 +16,7 @@ module.exports = {
   eject: EjectCommand,
   migrate: MigrateCommand,
   rollback: RollbackCommand,
+  stop: StopCommand,
   stripe: StripeCommand,
   tailwind: TailwindCommand,
   test: TestCommand,
