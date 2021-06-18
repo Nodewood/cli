@@ -6,6 +6,8 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
+- Fixes `dev` command not working without the `-d` option.
+
 ## Releases
 
 ### 0.15.0
