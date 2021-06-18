@@ -1,6 +1,5 @@
 const chalk = require('chalk');
 const spawn = require('cross-spawn');
-const { get } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject, getProjectName } = require('../lib/file');
 const { getDockerCompose, getDockerConfigFolder } = require('../lib/docker');
