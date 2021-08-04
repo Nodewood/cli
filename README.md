@@ -6,9 +6,11 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
-- Fixes custom plural not being respected when creating a feature.
-
 ## Releases
+
+### 0.15.2
+
+- Fixes custom plural not being respected when creating a feature.
 
 ### 0.15.1
 
