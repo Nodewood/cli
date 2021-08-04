@@ -6,9 +6,11 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
-- Fixes route not being added for new pages.
-
 ## Releases
+
+### 0.15.3
+
+- Fixes route not being added for new pages.
 
 ### 0.15.2
 
