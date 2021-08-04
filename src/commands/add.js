@@ -289,16 +289,16 @@ class AddCommand extends Command {
     console.log(chalk.cyan(targetDir));
 
     if (examples) {
-      this.addController(name, name, { customPlural: name, overwrite });
-      this.addService(name, name, { customPlural: name, overwrite });
-      this.addPage(name, name, { customPlural: name, overwrite, init: true });
-      this.addNewDialog(name, name, { customPlural: name, overwrite });
-      this.addEditDialog(name, name, { customPlural: name, overwrite });
-      this.addDeleteDialog(name, name, { customPlural: name, overwrite });
-      this.addStore(name, name, { customPlural: name, overwrite, init: true });
-      this.addFormValidator(name, name, { customPlural: name, overwrite });
-      this.addModel(name, name, { customPlural: name, overwrite });
-      this.addMigration(name);
+      this.addController(name, name, { customPlural: customPlural || name, overwrite });
+      this.addService(name, name, { customPlural: customPlural || name, overwrite });
+      this.addPage(name, name, { customPlural: customPlural || name, overwrite, init: true });
+      this.addNewDialog(name, name, { customPlural: customPlural || name, overwrite });
+      this.addEditDialog(name, name, { customPlural: customPlural || name, overwrite });
+      this.addDeleteDialog(name, name, { customPlural: customPlural || name, overwrite });
+      this.addStore(name, name, { customPlural: customPlural || name, overwrite, init: true });
+      this.addFormValidator(name, name, { customPlural: customPlural || name, overwrite });
+      this.addModel(name, name, { customPlural: customPlural || name, overwrite });
+      this.addMigration(customPlural || name);
     }
 
     console.log(`\nTo enable your new feature, add '${chalk.cyan(featureNames.kebabPluralName)}' to the '${chalk.cyan('features')}' array in '${chalk.cyan('app/config/app.js')}'.`);
@@ -336,7 +336,7 @@ class AddCommand extends Command {
    * @param {Boolean} overwrite - If we should overwrite the controller.
    */
   addController(feature, name, { customPlural, overwrite } = {}) {
-    const featureNames = this.getNames(feature, feature);
+    const featureNames = this.getNames(feature, customPlural);
     const fileNames = this.getNames(name, customPlural);
 
     const controllerSource = resolve(process.cwd(), 'wood/templates/controller/Controller.js');
@@ -391,7 +391,7 @@ class AddCommand extends Command {
    * @param {Boolean} overwrite - If we should overwrite the file.
    */
   addTemplateFile(sourceFile, targetTemplate, type, feature, name, customPlural, overwrite) {
-    const featureNames = this.getNames(feature, feature);
+    const featureNames = this.getNames(feature, customPlural);
     const fileNames = this.getNames(name, customPlural);
 
     const source = resolve(process.cwd(), sourceFile);
@@ -425,7 +425,7 @@ class AddCommand extends Command {
    * @param {String} fileTemplate - The filename template.
    */
   deleteFile(feature, name, customPlural, fileTemplate) {
-    const featureNames = this.getNames(feature, feature);
+    const featureNames = this.getNames(feature, customPlural);
     const fileNames = this.getNames(name, customPlural);
 
     const fileName = resolve(process.cwd(), template(fileTemplate)({
@@ -494,7 +494,7 @@ class AddCommand extends Command {
    * @param {String} customPlural - A user-provided custom plural (or false for none).
    */
   addRouteToInit(feature, name, customPlural) {
-    const featureNames = this.getNames(feature, feature);
+    const featureNames = this.getNames(feature, customPlural);
     const fileNames = this.getNames(name, customPlural);
 
     const source = resolve(process.cwd(), 'wood/templates/fragments/route.js');
@@ -638,7 +638,7 @@ class AddCommand extends Command {
    * @param {String} customPlural - A user-provided custom plural (or false for none).
    */
   addStoreToInit(feature, name, customPlural) {
-    const featureNames = this.getNames(feature, feature);
+    const featureNames = this.getNames(feature, customPlural);
     const fileNames = this.getNames(name, customPlural);
 
     const source = resolve(process.cwd(), 'wood/templates/fragments/store.js');
