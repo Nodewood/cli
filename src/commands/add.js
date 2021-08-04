@@ -25,7 +25,7 @@ const { isNodewoodProject } = require('../lib/file');
 
 const NODEWOOD_PREFIX = 'nodewood-';
 
-const ROUTE_LINE = '      // DO NOT REMOVE: Generated routes will be added above this line';
+const ROUTE_LINE = '    // DO NOT REMOVE: Generated routes will be added above this line';
 const STORE_LINE = '    // DO NOT REMOVE: Generated stores will be added above this line';
 
 const TYPE_FEATURE = 'feature';
