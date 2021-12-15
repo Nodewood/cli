@@ -1,7 +1,7 @@
 const chalk = require('chalk');
 const { readJsonSync } = require('fs-extra');
 const { resolve } = require('path');
-const { get, last } = require('lodash');
+const { get, head } = require('lodash');
 const { gt, lte } = require('semver');
 const { prompt } = require('inquirer');
 const { Command } = require('../lib/Command');
@@ -54,7 +54,7 @@ class UpCommand extends Command {
     const { apiKey, secretKey } = require(resolve(process.cwd(), '.nodewood.js')); // eslint-disable-line global-require
     const { version: currentWoodVersion } = readJsonSync(resolve(process.cwd(), 'wood/package.json'));
     const { releases, latestUserVersion } = await getReleaseInfo(apiKey, secretKey);
-    const latest = last(releases);
+    const latest = head(releases);
 
     // User is up to date
     if (latest.version === currentWoodVersion) {
@@ -70,7 +70,7 @@ class UpCommand extends Command {
       return;
     }
 
-    const targetRelease = last(validReleases);
+    const targetRelease = head(validReleases);
 
     // User cannot download the latest version, warn them
     if (latest.version !== latestUserVersion) {
@@ -137,7 +137,7 @@ function getValidReleases(releases, currentWoodVersion, latestUserVersion) {
  */
 function alertUserNoValidReleases(latestVersion) {
   console.log(chalk.red('Your Nodewood upgrade license has expired and you cannot upgrade to any available versions.')); // eslint-disable-line max-len
-  console.log(`The most-recent version is: ${chalk.cyan(latestVersion)}.`);
+  console.log(`The most-recent library version available to update to is: ${chalk.cyan(latestVersion)}.`);
   console.log('If you wish to purchase another year of updates, please visit https://nodewood.com');
 }
 
@@ -152,7 +152,7 @@ function alertUserNoValidReleases(latestVersion) {
 function warnUserLicenseExpired(targetVersion, latestVersion) {
   console.log(chalk.yellow('Your Nodewood upgrade license has expired and you cannot upgrade to the latest version.')); // eslint-disable-line max-len
   console.log(`You will be upgraded to the latest version available to your license, which is: ${chalk.cyan(targetVersion)}.`); // eslint-disable-line max-len
-  console.log(`The most-recent version is: ${chalk.cyan(latestVersion)}.`);
+  console.log(`The most-recent library version available to update to is: ${chalk.cyan(latestVersion)}.`);
   console.log('If you wish to purchase another year of updates, please visit https://nodewood.com');
 }
 

@@ -8,6 +8,10 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.15.4
+
+- Fixes incorrect "most-recent version" being displayed when checking updates.
+
 ### 0.15.3
 
 - Fixes route not being added for new pages.
