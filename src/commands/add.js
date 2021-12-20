@@ -303,6 +303,7 @@ class AddCommand extends Command {
       this.addStore(name, name, { customPlural: customPlural || name, overwrite, init: true });
       this.addFormValidator(name, name, { customPlural: customPlural || name, overwrite });
       this.addModel(name, name, { customPlural: customPlural || name, overwrite });
+      this.addScript(name, name, { overwrite });
       this.addMigration(customPlural || name);
     }
 
