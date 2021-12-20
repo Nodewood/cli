@@ -37,6 +37,7 @@ const TYPE_STORE = 'store';
 const TYPE_VALIDATOR = 'validator';
 const TYPE_MODEL = 'model';
 const TYPE_MIGRATION = 'migration';
+const TYPE_SCRIPT = 'script';
 
 const TEMPLATE_KEYS = {
   '###_SINGULAR_NAME_###': 'file.singularName', // api token
@@ -107,6 +108,7 @@ class AddCommand extends Command {
     console.log('  nodewood add:migration api-tokens');
     console.log('  nodewood add:dialog api-tokens edit-token --overwrite');
     console.log('  nodewood add:page api-tokens list-tokens --no-init');
+    console.log('  nodewood add:script api-tokens refresh-tokens');
   }
 
   /**
@@ -182,6 +184,9 @@ class AddCommand extends Command {
       }
       else if (toAdd === TYPE_MODEL) {
         this.addModel(feature, name, parsedArgs);
+      }
+      else if (toAdd === TYPE_SCRIPT) {
+        this.addScript(feature, name, parsedArgs);
       }
       else {
         console.log(chalk.red(`Invalid type to add: '${toAdd}'`));
@@ -700,6 +705,35 @@ class AddCommand extends Command {
       feature,
       name,
       customPlural,
+      overwrite,
+    );
+  }
+
+  /**
+   * Add a script.
+   *
+   * @param {String} feature - The name of the feature to add the script to.
+   * @param {String} name - The name of the script to add.
+   * @param {Boolean} overwrite - If we should overwrite the script.
+   */
+  addScript(feature, name, { overwrite }) {
+    this.addTemplateFile(
+      'wood/templates/script/Script.js',
+      'app/features/<%= featureName %>/cli/scripts/<%= fileName %>Script.js',
+      'script',
+      feature,
+      name,
+      false,
+      overwrite,
+    );
+
+    this.addTemplateFile(
+      'wood/templates/script/Script.test.js',
+      'app/features/<%= featureName %>/cli/scripts/__tests__/<%= fileName %>Script.test.js',
+      'script test',
+      feature,
+      name,
+      false,
       overwrite,
     );
   }

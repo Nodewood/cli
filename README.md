@@ -6,6 +6,7 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
+- Adds `script` as new type for `add` command.
 - Adds `script` command to run scripts.
 
 ## Releases
