@@ -1,6 +1,5 @@
 const chalk = require('chalk');
 const moment = require('moment');
-const pluralize = require('pluralize');
 const klawSync = require('klaw-sync');
 const {
   get,
@@ -20,6 +19,7 @@ const {
   readFileSync,
   writeFileSync,
 } = require('fs-extra');
+const { pluralize } = require('../lib/text');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
 
