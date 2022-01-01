@@ -7,6 +7,7 @@ const {
   camelCase,
   snakeCase,
   upperFirst,
+  upperCase,
   template,
   words,
 } = require('lodash');
@@ -52,19 +53,23 @@ const TEMPLATE_KEYS = {
   '###_KEBAB_PLURAL_NAME_###': 'file.kebabPluralName', // api-tokens
   '###_SNAKE_PLURAL_NAME_###': 'file.snakePluralName', // api_tokens
   '###_UC_PLURAL_NAME_###': 'file.ucPluralName', // Api Tokens
+  '###_UPPER_SNAKE_NAME_###': 'file.upperSnakeName', // API_TOKEN
+  '###_UPPER_SNAKE_PLURAL_NAME_###': 'file.upperSnakePluralName', // API_TOKENS
 
-  '###_FEATURE_SINGULAR_NAME_###': 'feature.singularName',
-  '###_FEATURE_PLURAL_NAME_###': 'feature.pluralName',
-  '###_FEATURE_CAMEL_NAME_###': 'feature.camelName',
-  '###_FEATURE_PASCAL_NAME_###': 'feature.pascalName',
-  '###_FEATURE_KEBAB_NAME_###': 'feature.kebabName',
-  '###_FEATURE_SNAKE_NAME_###': 'feature.snakeName',
+  '###_FEATURE_SINGULAR_NAME_###': 'feature.singularName', // api token
+  '###_FEATURE_PLURAL_NAME_###': 'feature.pluralName', // api tokens
+  '###_FEATURE_CAMEL_NAME_###': 'feature.camelName', // apiToken
+  '###_FEATURE_PASCAL_NAME_###': 'feature.pascalName', // ApiToken
+  '###_FEATURE_KEBAB_NAME_###': 'feature.kebabName', // api-token
+  '###_FEATURE_SNAKE_NAME_###': 'feature.snakeName', // api_token
   '###_FEATURE_UC_NAME_###': 'feature.ucName', // Api Token
-  '###_FEATURE_CAMEL_PLURAL_NAME_###': 'feature.camelPluralName',
-  '###_FEATURE_PASCAL_PLURAL_NAME_###': 'feature.pascalPluralName',
-  '###_FEATURE_KEBAB_PLURAL_NAME_###': 'feature.kebabPluralName',
-  '###_FEATURE_SNAKE_PLURAL_NAME_###': 'feature.snakePluralName',
+  '###_FEATURE_CAMEL_PLURAL_NAME_###': 'feature.camelPluralName', // apiTokens
+  '###_FEATURE_PASCAL_PLURAL_NAME_###': 'feature.pascalPluralName', // ApiTokens
+  '###_FEATURE_KEBAB_PLURAL_NAME_###': 'feature.kebabPluralName', // api-tokens
+  '###_FEATURE_SNAKE_PLURAL_NAME_###': 'feature.snakePluralName', // api_tokens
   '###_FEATURE_UC_PLURAL_NAME_###': 'feature.ucPluralName', // Api Tokens
+  '###_FEATURE_UPPER_SNAKE_NAME_###': 'feature.upperSnakeName', // API_TOKEN
+  '###_FEATURE_UPPER_SNAKE_PLURAL_NAME_###': 'feature.upperSnakePluralName', // API_TOKENS
 };
 
 class AddCommand extends Command {
@@ -223,6 +228,9 @@ class AddCommand extends Command {
       kebabPluralName: kebabCase(pluralName),
       snakePluralName: snakeCase(pluralName),
       ucPluralName: words(pluralName).map(upperFirst).join(' '),
+
+      upperSnakeName: upperCase(snakeCase(singularName)),
+      upperSnakePluralName: upperCase(snakeCase(pluralName)),
     };
   }
 

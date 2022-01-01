@@ -9,6 +9,7 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 - Adds `script` as new type for `add` command.
 - Adds `script` command to run scripts.
 - Adds custom case for `admin` when pluralizing (always `admin`), so files for the `admin` feature get put in the correct spot.
+- Adds new template values to support new model field names.
 
 ## Releases
 
