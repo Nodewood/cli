@@ -6,12 +6,14 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
+## Releases
+
+### 0.16.0
+
 - Adds `script` as new type for `add` command.
 - Adds `script` command to run scripts.
 - Adds custom case for `admin` when pluralizing (always `admin`), so files for the `admin` feature get put in the correct spot.
 - Adds new template values to support new model field names.
-
-## Releases
 
 ### 0.15.4
 
