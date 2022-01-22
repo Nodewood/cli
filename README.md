@@ -6,6 +6,9 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
+- Fixes migration name not respecting custom plurals.
+
+
 ## Releases
 
 ### 0.16.0

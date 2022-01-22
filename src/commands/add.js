@@ -328,7 +328,7 @@ class AddCommand extends Command {
     const names = this.getNames(name);
     const ts = moment().format('YYYYMMDDHHmmss');
     const sourcePath = resolve(process.cwd(), 'wood/templates/migration/Migration.js');
-    const targetPath = resolve(process.cwd(), `app/migrations/${ts}_${names.snakePluralName}.js`);
+    const targetPath = resolve(process.cwd(), `app/migrations/${ts}_${name}.js`);
 
     const contents = readFileSync(sourcePath, 'utf-8');
     writeFileSync(
