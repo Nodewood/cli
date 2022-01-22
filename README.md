@@ -6,8 +6,8 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
-- Fixes migration name not respecting custom plurals.
-
+- Fixes migration name created with `add:feature` not respecting custom plurals.
+- Fixes scripts created with `add:feature` not respecting custom plurals.
 
 ## Releases
 

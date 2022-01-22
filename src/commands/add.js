@@ -311,7 +311,7 @@ class AddCommand extends Command {
       this.addStore(name, name, { customPlural: customPlural || name, overwrite, init: true });
       this.addFormValidator(name, name, { customPlural: customPlural || name, overwrite });
       this.addModel(name, name, { customPlural: customPlural || name, overwrite });
-      this.addScript(name, name, { overwrite });
+      this.addScript(name, name, { customPlural: customPlural || name, overwrite });
       this.addMigration(customPlural || name);
     }
 
@@ -725,14 +725,14 @@ class AddCommand extends Command {
    * @param {String} name - The name of the script to add.
    * @param {Boolean} overwrite - If we should overwrite the script.
    */
-  addScript(feature, name, { overwrite }) {
+  addScript(feature, name, { customPlural, overwrite }) {
     this.addTemplateFile(
       'wood/templates/script/Script.js',
       'app/features/<%= featureName %>/cli/scripts/<%= fileName %>Script.js',
       'script',
       feature,
       name,
-      false,
+      customPlural,
       overwrite,
     );
 
@@ -742,7 +742,7 @@ class AddCommand extends Command {
       'script test',
       feature,
       name,
-      false,
+      customPlural,
       overwrite,
     );
   }
