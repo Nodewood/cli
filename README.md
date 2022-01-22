@@ -8,6 +8,10 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.16.2
+
+- Removes pluralization behaviour for feature name when creating files with `add`.
+
 ### 0.16.1
 
 - Fixes migration name created with `add:feature` not respecting custom plurals.

@@ -56,20 +56,7 @@ const TEMPLATE_KEYS = {
   '###_UPPER_SNAKE_NAME_###': 'file.upperSnakeName', // API_TOKEN
   '###_UPPER_SNAKE_PLURAL_NAME_###': 'file.upperSnakePluralName', // API_TOKENS
 
-  '###_FEATURE_SINGULAR_NAME_###': 'feature.singularName', // api token
-  '###_FEATURE_PLURAL_NAME_###': 'feature.pluralName', // api tokens
-  '###_FEATURE_CAMEL_NAME_###': 'feature.camelName', // apiToken
-  '###_FEATURE_PASCAL_NAME_###': 'feature.pascalName', // ApiToken
-  '###_FEATURE_KEBAB_NAME_###': 'feature.kebabName', // api-token
-  '###_FEATURE_SNAKE_NAME_###': 'feature.snakeName', // api_token
-  '###_FEATURE_UC_NAME_###': 'feature.ucName', // Api Token
-  '###_FEATURE_CAMEL_PLURAL_NAME_###': 'feature.camelPluralName', // apiTokens
-  '###_FEATURE_PASCAL_PLURAL_NAME_###': 'feature.pascalPluralName', // ApiTokens
-  '###_FEATURE_KEBAB_PLURAL_NAME_###': 'feature.kebabPluralName', // api-tokens
-  '###_FEATURE_SNAKE_PLURAL_NAME_###': 'feature.snakePluralName', // api_tokens
-  '###_FEATURE_UC_PLURAL_NAME_###': 'feature.ucPluralName', // Api Tokens
-  '###_FEATURE_UPPER_SNAKE_NAME_###': 'feature.upperSnakeName', // API_TOKEN
-  '###_FEATURE_UPPER_SNAKE_PLURAL_NAME_###': 'feature.upperSnakePluralName', // API_TOKENS
+  '###_FEATURE_NAME_###': 'feature',
 };
 
 class AddCommand extends Command {
@@ -142,8 +129,6 @@ class AddCommand extends Command {
         console.log(chalk.red('You must enter a feature name.'));
         return;
       }
-
-      name = pluralize(camelCase(name));
 
       this.addFeature(name, {
         ...parsedArgs,
@@ -242,11 +227,8 @@ class AddCommand extends Command {
    *
    * @return {String}
    */
-  templateString(templateString, featureNames, fileNames) {
-    const names = {
-      feature: featureNames,
-      file: fileNames,
-    };
+  templateString(templateString, feature, fileNames) {
+    const names = { feature, file: fileNames };
 
     return Object.entries(TEMPLATE_KEYS).reduce(
       (string, [key, value]) => string.replace(new RegExp(key, 'g'), get(names, value)),
@@ -263,10 +245,11 @@ class AddCommand extends Command {
    * @param {Boolean} overwrite - If we should overwrite any existing feature.
    */
   addFeature(name, { customPlural, examples, overwrite } = {}) {
-    const featureNames = this.getNames(name, customPlural);
+    const plural = pluralize(camelCase(name));
+    const fileNames = this.getNames(plural, customPlural);
 
     const sourceDir = resolve(process.cwd(), 'wood/templates/feature');
-    const targetDir = resolve(process.cwd(), `app/features/${featureNames.kebabPluralName}`);
+    const targetDir = resolve(process.cwd(), `app/features/${name}`);
 
     if (name.substr(0, 9) === NODEWOOD_PREFIX) {
       console.log(chalk.red(`Feature cannot start with '${chalk.cyan(NODEWOOD_PREFIX)}'.`));
@@ -280,8 +263,8 @@ class AddCommand extends Command {
     }
     // If not overwriting, ensure feature does not already exist
     else if (existsSync(targetDir)) {
-      console.log(chalk.red(`The folder for feature '${chalk.cyan(featureNames.kebabPluralName)}' already exists.`));
-      console.log(`Please ensure the folder 'app/features/${chalk.cyan(featureNames.kebabPluralName)}' does not exist.`);
+      console.log(chalk.red(`The folder for feature '${chalk.cyan(name)}' already exists.`));
+      console.log(`Please ensure the folder 'app/features/${chalk.cyan(name)}' does not exist.`);
       return;
     }
 
@@ -295,27 +278,30 @@ class AddCommand extends Command {
 
     files.forEach((file) => {
       const contents = readFileSync(file.path, 'utf-8');
-      writeFileSync(file.path, this.templateString(contents, featureNames, featureNames));
+      writeFileSync(file.path, this.templateString(contents, name, fileNames));
     });
 
     console.log('Feature created at:');
     console.log(chalk.cyan(targetDir));
 
     if (examples) {
-      this.addController(name, name, { customPlural: customPlural || name, overwrite });
-      this.addService(name, name, { customPlural: customPlural || name, overwrite });
-      this.addPage(name, name, { customPlural: customPlural || name, overwrite, init: true });
-      this.addNewDialog(name, name, { customPlural: customPlural || name, overwrite });
-      this.addEditDialog(name, name, { customPlural: customPlural || name, overwrite });
-      this.addDeleteDialog(name, name, { customPlural: customPlural || name, overwrite });
-      this.addStore(name, name, { customPlural: customPlural || name, overwrite, init: true });
-      this.addFormValidator(name, name, { customPlural: customPlural || name, overwrite });
-      this.addModel(name, name, { customPlural: customPlural || name, overwrite });
-      this.addScript(name, name, { customPlural: customPlural || name, overwrite });
-      this.addMigration(customPlural || name);
+      console.log(`Name: ${name}`);
+      console.log(`Plural: ${plural}`);
+
+      this.addController(name, plural, { customPlural: customPlural || plural, overwrite });
+      this.addService(name, plural, { customPlural: customPlural || plural, overwrite });
+      this.addPage(name, plural, { customPlural: customPlural || plural, overwrite, init: true });
+      this.addNewDialog(name, plural, { customPlural: customPlural || plural, overwrite });
+      this.addEditDialog(name, plural, { customPlural: customPlural || plural, overwrite });
+      this.addDeleteDialog(name, plural, { customPlural: customPlural || plural, overwrite });
+      this.addStore(name, plural, { customPlural: customPlural || plural, overwrite, init: true });
+      this.addFormValidator(name, plural, { customPlural: customPlural || plural, overwrite });
+      this.addModel(name, plural, { customPlural: customPlural || plural, overwrite });
+      this.addScript(name, plural, { customPlural: customPlural || plural, overwrite });
+      this.addMigration(customPlural || plural);
     }
 
-    console.log(`\nTo enable your new feature, add '${chalk.cyan(featureNames.kebabPluralName)}' to the '${chalk.cyan('features')}' array in '${chalk.cyan('app/config/app.js')}'.`);
+    console.log(`\nTo enable your new feature, add '${chalk.cyan(name)}' to the '${chalk.cyan('features')}' array in '${chalk.cyan('app/config/app.js')}'.`);
     console.log(`To add your feature to the sidebar, add an entry for it to the '${chalk.cyan('sidebar')}' array in '${chalk.cyan('app/config/ui.js')}'.`);
   }
 
@@ -350,14 +336,13 @@ class AddCommand extends Command {
    * @param {Boolean} overwrite - If we should overwrite the controller.
    */
   addController(feature, name, { customPlural, overwrite } = {}) {
-    const featureNames = this.getNames(feature, customPlural);
     const fileNames = this.getNames(name, customPlural);
 
     const controllerSource = resolve(process.cwd(), 'wood/templates/controller/Controller.js');
-    const controllerTarget = resolve(process.cwd(), `app/features/${featureNames.kebabPluralName}/api/controllers/${fileNames.pascalPluralName}Controller.js`);
+    const controllerTarget = resolve(process.cwd(), `app/features/${feature}/api/controllers/${fileNames.pascalPluralName}Controller.js`);
 
     const testSource = resolve(process.cwd(), 'wood/templates/controller/Controller.test.js');
-    const testTarget = resolve(process.cwd(), `app/features/${featureNames.kebabPluralName}/api/controllers/__tests__/${fileNames.pascalPluralName}Controller.test.js`);
+    const testTarget = resolve(process.cwd(), `app/features/${feature}/api/controllers/__tests__/${fileNames.pascalPluralName}Controller.test.js`);
 
     // Don't accidentally overwrite these files
     if (! overwrite) {
@@ -378,14 +363,14 @@ class AddCommand extends Command {
     const controllerContents = readFileSync(controllerTarget, 'utf-8');
     writeFileSync(
       controllerTarget,
-      this.templateString(controllerContents, featureNames, fileNames),
+      this.templateString(controllerContents, feature, fileNames),
     );
 
     copySync(testSource, testTarget);
     const testContents = readFileSync(testTarget, 'utf-8');
     writeFileSync(
       testTarget,
-      this.templateString(testContents, featureNames, fileNames),
+      this.templateString(testContents, feature, fileNames),
     );
 
     console.log('Controller and tests created at:');
@@ -405,12 +390,10 @@ class AddCommand extends Command {
    * @param {Boolean} overwrite - If we should overwrite the file.
    */
   addTemplateFile(sourceFile, targetTemplate, type, feature, name, customPlural, overwrite) {
-    const featureNames = this.getNames(feature, customPlural);
     const fileNames = this.getNames(name, customPlural);
 
     const source = resolve(process.cwd(), sourceFile);
     const target = resolve(process.cwd(), template(targetTemplate)({
-      featureName: featureNames.kebabPluralName,
       fileName: fileNames.pascalName,
       fileNamePlural: fileNames.pascalPluralName,
     }));
@@ -424,7 +407,7 @@ class AddCommand extends Command {
 
     copySync(source, target);
     const contents = readFileSync(target, 'utf-8');
-    writeFileSync(target, this.templateString(contents, featureNames, fileNames));
+    writeFileSync(target, this.templateString(contents, feature, fileNames));
 
     console.log(`${upperFirst(type)} created at:`);
     console.log(chalk.cyan(target));
@@ -433,17 +416,14 @@ class AddCommand extends Command {
   /**
    * Delete a file.
    *
-   * @param {String} feature - The feature to use in the filename template.
    * @param {String} name - The name to use in the filename template.
    * @param {String} customPlural - A user-provided custom plural (or false for none).
    * @param {String} fileTemplate - The filename template.
    */
-  deleteFile(feature, name, customPlural, fileTemplate) {
-    const featureNames = this.getNames(feature, customPlural);
+  deleteFile(name, customPlural, fileTemplate) {
     const fileNames = this.getNames(name, customPlural);
 
     const fileName = resolve(process.cwd(), template(fileTemplate)({
-      featureName: featureNames.kebabPluralName,
       fileName: fileNames.pascalName,
     }));
 
@@ -461,7 +441,7 @@ class AddCommand extends Command {
   addService(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/service/Service.js',
-      'app/features/<%= featureName %>/api/services/<%= fileNamePlural %>Service.js',
+      `app/features/${feature}/api/services/<%= fileNamePlural %>Service.js`,
       'service',
       feature,
       name,
@@ -482,7 +462,7 @@ class AddCommand extends Command {
   addPage(feature, name, { customPlural, overwrite, init } = {}) {
     this.addTemplateFile(
       'wood/templates/page/Page.vue',
-      'app/features/<%= featureName %>/ui/pages/<%= fileNamePlural %>Page.vue',
+      `app/features/${feature}/ui/pages/<%= fileNamePlural %>Page.vue`,
       'page',
       feature,
       name,
@@ -491,11 +471,7 @@ class AddCommand extends Command {
     );
 
     if (init && ! this.addRouteToInit(feature, name, customPlural)) {
-      this.deleteFile(
-        feature,
-        name,
-        'app/features/<%= featureName %>/ui/pages/<%= fileNamePlural %>Page.vue',
-      );
+      this.deleteFile(name, `app/features/${feature}/ui/pages/<%= fileNamePlural %>Page.vue`);
       console.log(chalk.red('Page removed.'));
     }
   }
@@ -508,22 +484,21 @@ class AddCommand extends Command {
    * @param {String} customPlural - A user-provided custom plural (or false for none).
    */
   addRouteToInit(feature, name, customPlural) {
-    const featureNames = this.getNames(feature, customPlural);
     const fileNames = this.getNames(name, customPlural);
 
     const source = resolve(process.cwd(), 'wood/templates/fragments/route.js');
-    const target = resolve(process.cwd(), `app/features/${featureNames.kebabPluralName}/ui/init.js`);
+    const target = resolve(process.cwd(), `app/features/${feature}/ui/init.js`);
 
     const routeFragment = this.templateString(
       readFileSync(source, 'utf-8'),
-      featureNames,
+      feature,
       fileNames,
     );
     const initFile = readFileSync(target, 'utf-8');
 
     // Don't add route if it already exists
     if (initFile.includes(`path: '/${fileNames.kebabName}'`)) {
-      console.log(chalk.red(`Path ${chalk.cyan(`/${fileNames.kebabName}`)} already exists in routes in ${chalk.cyan(`app/features/${featureNames.kebabPluralName}/ui/init.js`)}.`));
+      console.log(chalk.red(`Path ${chalk.cyan(`/${fileNames.kebabName}`)} already exists in routes in ${chalk.cyan(`app/features/${feature}/ui/init.js`)}.`));
       console.log(chalk.red('Please remove this route and try your command again.'));
       return false;
     }
@@ -545,7 +520,7 @@ class AddCommand extends Command {
   addDialog(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/dialog/Dialog.vue',
-      'app/features/<%= featureName %>/ui/dialogs/<%= fileName %>Dialog.vue',
+      `app/features/${feature}/ui/dialogs/<%= fileName %>Dialog.vue`,
       'dialog',
       feature,
       name,
@@ -565,7 +540,7 @@ class AddCommand extends Command {
   addNewDialog(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/dialog/NewDialog.vue',
-      'app/features/<%= featureName %>/ui/dialogs/New<%= fileName %>Dialog.vue',
+      `app/features/${feature}/ui/dialogs/New<%= fileName %>Dialog.vue`,
       'dialog',
       feature,
       name,
@@ -585,7 +560,7 @@ class AddCommand extends Command {
   addEditDialog(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/dialog/EditDialog.vue',
-      'app/features/<%= featureName %>/ui/dialogs/Edit<%= fileName %>Dialog.vue',
+      `app/features/${feature}/ui/dialogs/Edit<%= fileName %>Dialog.vue`,
       'dialog',
       feature,
       name,
@@ -605,7 +580,7 @@ class AddCommand extends Command {
   addDeleteDialog(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/dialog/DeleteDialog.vue',
-      'app/features/<%= featureName %>/ui/dialogs/Delete<%= fileName %>Dialog.vue',
+      `app/features/${feature}/ui/dialogs/Delete<%= fileName %>Dialog.vue`,
       'dialog',
       feature,
       name,
@@ -626,7 +601,7 @@ class AddCommand extends Command {
   addStore(feature, name, { customPlural, overwrite, init } = {}) {
     this.addTemplateFile(
       'wood/templates/store/Store.js',
-      'app/features/<%= featureName %>/ui/stores/<%= fileNamePlural %>Store.js',
+      `app/features/${feature}/ui/stores/<%= fileNamePlural %>Store.js`,
       'store',
       feature,
       name,
@@ -635,11 +610,7 @@ class AddCommand extends Command {
     );
 
     if (init && ! this.addStoreToInit(feature, name, customPlural)) {
-      this.deleteFile(
-        feature,
-        name,
-        'app/features/<%= featureName %>/ui/stores/<%= fileNamePlural %>Store.js',
-      );
+      this.deleteFile(name, `app/features/${feature}/ui/stores/<%= fileNamePlural %>Store.js`);
       console.log(chalk.red('Store removed.'));
     }
   }
@@ -652,22 +623,21 @@ class AddCommand extends Command {
    * @param {String} customPlural - A user-provided custom plural (or false for none).
    */
   addStoreToInit(feature, name, customPlural) {
-    const featureNames = this.getNames(feature, customPlural);
     const fileNames = this.getNames(name, customPlural);
 
     const source = resolve(process.cwd(), 'wood/templates/fragments/store.js');
-    const target = resolve(process.cwd(), `app/features/${featureNames.kebabPluralName}/ui/init.js`);
+    const target = resolve(process.cwd(), `app/features/${feature}/ui/init.js`);
 
     const storeFragment = this.templateString(
       readFileSync(source, 'utf-8'),
-      featureNames,
+      feature,
       fileNames,
     );
     const initFile = readFileSync(target, 'utf-8');
 
     // Don't add route if it already exists
-    if (initFile.includes(`'#features/${featureNames.kebabName}/ui/stores/${fileNames.pascalPluralName}Store'`)) {
-      console.log(chalk.red(`Store ${chalk.cyan(`${fileNames.pascalPluralName}Store`)} already exists in ${chalk.cyan(`app/features/${featureNames.kebabPluralName}/ui/init.js`)}.`));
+    if (initFile.includes(`'#features/${feature}/ui/stores/${fileNames.pascalPluralName}Store'`)) {
+      console.log(chalk.red(`Store ${chalk.cyan(`${fileNames.pascalPluralName}Store`)} already exists in ${chalk.cyan(`app/features/${feature}/ui/init.js`)}.`));
       console.log(chalk.red('Please remove this store and try your command again.'));
       return false;
     }
@@ -689,7 +659,7 @@ class AddCommand extends Command {
   addFormValidator(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/validator/Validator.js',
-      'app/features/<%= featureName %>/lib/validators/<%= fileName %>Validator.js',
+      `app/features/${feature}/lib/validators/<%= fileName %>Validator.js`,
       'validator',
       feature,
       name,
@@ -709,7 +679,7 @@ class AddCommand extends Command {
   addModel(feature, name, { customPlural, overwrite } = {}) {
     this.addTemplateFile(
       'wood/templates/model/Model.js',
-      'app/features/<%= featureName %>/lib/models/<%= fileName %>Model.js',
+      `app/features/${feature}/lib/models/<%= fileName %>Model.js`,
       'model',
       feature,
       name,
@@ -728,7 +698,7 @@ class AddCommand extends Command {
   addScript(feature, name, { customPlural, overwrite }) {
     this.addTemplateFile(
       'wood/templates/script/Script.js',
-      'app/features/<%= featureName %>/cli/scripts/<%= fileName %>Script.js',
+      `app/features/${feature}/cli/scripts/<%= fileName %>Script.js`,
       'script',
       feature,
       name,
@@ -738,7 +708,7 @@ class AddCommand extends Command {
 
     this.addTemplateFile(
       'wood/templates/script/Script.test.js',
-      'app/features/<%= featureName %>/cli/scripts/__tests__/<%= fileName %>Script.test.js',
+      `app/features/${feature}/cli/scripts/__tests__/<%= fileName %>Script.test.js`,
       'script test',
       feature,
       name,
