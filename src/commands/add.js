@@ -7,7 +7,6 @@ const {
   camelCase,
   snakeCase,
   upperFirst,
-  upperCase,
   template,
   words,
 } = require('lodash');
@@ -214,8 +213,8 @@ class AddCommand extends Command {
       snakePluralName: snakeCase(pluralName),
       ucPluralName: words(pluralName).map(upperFirst).join(' '),
 
-      upperSnakeName: upperCase(snakeCase(singularName)),
-      upperSnakePluralName: upperCase(snakeCase(pluralName)),
+      upperSnakeName: snakeCase(singularName).toUpperCase(),
+      upperSnakePluralName: snakeCase(pluralName).toUpperCase(),
     };
   }
 
