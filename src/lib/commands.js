@@ -5,6 +5,7 @@ const { MigrateCommand } = require('../commands/migrate');
 const { NewCommand } = require('../commands/new');
 const { RollbackCommand } = require('../commands/rollback');
 const { ScriptCommand } = require('../commands/script');
+const { SeedCommand } = require('../commands/seed');
 const { StopCommand } = require('../commands/stop');
 const { StripeCommand } = require('../commands/stripe');
 const { TailwindCommand } = require('../commands/tailwind');
@@ -19,6 +20,7 @@ module.exports = {
   new: NewCommand,
   rollback: RollbackCommand,
   script: ScriptCommand,
+  seed: SeedCommand,
   stop: StopCommand,
   stripe: StripeCommand,
   tailwind: TailwindCommand,

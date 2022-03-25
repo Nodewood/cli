@@ -6,6 +6,8 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Unreleased
 
+- Adds `seed` command to run Knex seeds.
+
 ## Releases
 
 ### 0.16.3
