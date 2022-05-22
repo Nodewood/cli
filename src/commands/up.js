@@ -17,6 +17,7 @@ const {
   URL_BASE,
 } = require('../lib/net');
 const { updateAppDependencies } = require('../lib/package');
+const { log } = require('../lib/log');
 
 class UpCommand extends Command {
   /**
@@ -34,10 +35,10 @@ class UpCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    this.log(this.helpLine());
+    log(this.helpLine());
 
-    this.log(chalk.yellow('\nUsage:'));
-    this.log('  nodewood up         # Updates your Nodewood installation to the latest available version');
+    log(chalk.yellow('\nUsage:'));
+    log('  nodewood up         # Updates your Nodewood installation to the latest available version');
   }
 
   /**
@@ -47,7 +48,7 @@ class UpCommand extends Command {
    */
   async execute(args) {
     if (! isNodewoodProject()) {
-      this.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
+      log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
       return;
     }
 
@@ -58,7 +59,7 @@ class UpCommand extends Command {
 
     // User is up to date
     if (latest.version === currentWoodVersion) {
-      this.log(chalk.yellow('You are already up to date.'));
+      log(chalk.yellow('You are already up to date.'));
       return;
     }
 
@@ -90,8 +91,8 @@ class UpCommand extends Command {
     updateAppDependencies();
     yarnInstall(process.cwd());
 
-    this.log(`\nYour Nodewood installation has been upgraded to ${chalk.cyan(targetRelease.version)}.`);
-    this.log(`\nYou may need to add the ${chalk.cyan('--no-verify')} flag to your next git commit, since it will try to prevent you from committing any changes to your ${chalk.cyan('wood')} folder.`);
+    log(`\nYour Nodewood installation has been upgraded to ${chalk.cyan(targetRelease.version)}.`);
+    log(`\nYou may need to add the ${chalk.cyan('--no-verify')} flag to your next git commit, since it will try to prevent you from committing any changes to your ${chalk.cyan('wood')} folder.`);
   }
 }
 
@@ -136,9 +137,9 @@ function getValidReleases(releases, currentWoodVersion, latestUserVersion) {
  * @param {String} latestVersion - The latest version available to anyone (just not the user).
  */
 function alertUserNoValidReleases(latestVersion) {
-  this.log(chalk.red('Your Nodewood upgrade license has expired and you cannot upgrade to any available versions.')); // eslint-disable-line max-len
-  this.log(`The most-recent library version available to update to is: ${chalk.cyan(latestVersion)}.`);
-  this.log('If you wish to purchase another year of updates, please visit https://nodewood.com');
+  log(chalk.red('Your Nodewood upgrade license has expired and you cannot upgrade to any available versions.')); // eslint-disable-line max-len
+  log(`The most-recent library version available to update to is: ${chalk.cyan(latestVersion)}.`);
+  log('If you wish to purchase another year of updates, please visit https://nodewood.com');
 }
 
 
@@ -150,10 +151,10 @@ function alertUserNoValidReleases(latestVersion) {
  * @param {String} latestVersion - The latest version available to anyone (just not the user).
  */
 function warnUserLicenseExpired(targetVersion, latestVersion) {
-  this.log(chalk.yellow('Your Nodewood upgrade license has expired and you cannot upgrade to the latest version.')); // eslint-disable-line max-len
-  this.log(`You will be upgraded to the latest version available to your license, which is: ${chalk.cyan(targetVersion)}.`); // eslint-disable-line max-len
-  this.log(`The most-recent library version available to update to is: ${chalk.cyan(latestVersion)}.`);
-  this.log('If you wish to purchase another year of updates, please visit https://nodewood.com');
+  log(chalk.yellow('Your Nodewood upgrade license has expired and you cannot upgrade to the latest version.')); // eslint-disable-line max-len
+  log(`You will be upgraded to the latest version available to your license, which is: ${chalk.cyan(targetVersion)}.`); // eslint-disable-line max-len
+  log(`The most-recent library version available to update to is: ${chalk.cyan(latestVersion)}.`);
+  log('If you wish to purchase another year of updates, please visit https://nodewood.com');
 }
 
 /**
@@ -162,11 +163,11 @@ function warnUserLicenseExpired(targetVersion, latestVersion) {
  * @param {Array} releases - The releases to display the migration notes for.
  */
 function displayMigrationNotes(releases) {
-  this.log(chalk.green('Migration Notes:\n'));
+  log(chalk.green('Migration Notes:\n'));
 
   releases.forEach((release) => {
-    this.log(`Version: ${chalk.cyan(release.version)}`);
-    this.log(`${release.migration_notes}\n`);
+    log(`Version: ${chalk.cyan(release.version)}`);
+    log(`${release.migration_notes}\n`);
   });
 }
 
@@ -193,7 +194,7 @@ async function confirmUpgradeTo(version) {
 function addTailwindPrefix() {
   const prefix = getTailwindPrefix();
   if (prefix !== false) {
-    this.log(`Adding prefix '${chalk.cyan(prefix)}' to Tailwind CSS classes...`);
+    log(`Adding prefix '${chalk.cyan(prefix)}' to Tailwind CSS classes...`);
     const classList = getTailwindClassList();
     updateTailwindClasses(resolve(process.cwd(), 'wood'), prefix, classList);
   }

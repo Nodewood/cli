@@ -2,14 +2,16 @@ const { resolve } = require('path');
 const unzipper = require('unzipper');
 const superagent = require('superagent');
 const moment = require('moment');
-const { readJsonSync, emptyDirSync } = require('fs-extra');
-const { hmac } = require('../lib/hmac');
-const { fixScriptsMode } = require('../lib/file');
 const {
+  readJsonSync,
+  emptyDirSync,
   createWriteStream,
   createReadStream,
   removeSync,
 } = require('fs-extra');
+const { hmac } = require('../lib/hmac');
+const { fixScriptsMode } = require('../lib/file');
+const { log, verbose } = require('../lib/log');
 
 /**
  * @type {String} Default characters for random strilg are just alphanumeric
@@ -76,7 +78,7 @@ function randString(length, characters = DEFAULT_CHARACTERS) {
  * @return { downloaded, latest } The downloaded and latest-possible version of the template.
  */
 async function installTemplate(path, apiKey, secretKey) {
-  console.log('Installing application template...');
+  log('Installing application template...');
 
   const zipfile = `${path}/../template-${randString(10)}.zip`;
   const versions = await downloadZip(
@@ -101,7 +103,7 @@ async function installTemplate(path, apiKey, secretKey) {
  * @return { downloaded, latest } The downloaded and latest-possible version of wood.
  */
 async function installWood(path, apiKey, secretKey) {
-  console.log('Installing Nodewood library...');
+  log('Installing Nodewood library...');
 
   const zipfile = `${path}/../wood-${randString(10)}.zip`;
   const versions = await downloadZip(

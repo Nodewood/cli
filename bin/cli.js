@@ -9,6 +9,7 @@ const { existsSync, readJsonSync } = require('fs-extra');
 const { resolve } = require('path');
 const commands = require('../src/lib/commands');
 const { showHelp, showDetailedHelp } = require('../src/lib/help');
+const { log } = require('../src/lib/log');
 
 const args = require('minimist')(process.argv.slice(2));
 const command = get(args._, 0, '').split(':')[0];
@@ -19,17 +20,17 @@ const REQUIRED_NODE_VERSION = '12.0.0';
  * Displays the CLI header including CLI version and local Nodewood library version (if applicable).
  */
 function displayHeader() {
-  console.log(chalk.yellow(figlet.textSync('Nodewood', { horizontalLayout: 'full' })));
+  log(chalk.yellow(figlet.textSync('Nodewood', { horizontalLayout: 'full' })));
 
   const packageObj = readJsonSync(resolve(__dirname, '../package.json'));
-  console.log(`CLI Version ${packageObj.version}`);
+  log(`CLI Version ${packageObj.version}`);
 
   if (existsSync(resolve(process.cwd(), 'wood/package.json'))) {
     const nodewoodObj = readJsonSync(resolve(process.cwd(), 'wood/package.json'));
-    console.log(`Library Version ${nodewoodObj.version}`);
+    log(`Library Version ${nodewoodObj.version}`);
   }
 
-  console.log(''); // Final newline
+  log(''); // Final newline
 }
 
 /**
@@ -73,8 +74,8 @@ function isInvalidNodeVersion() {
 
   // Show invalid version help
   if (isInvalidNodeVersion()) {
-    console.log(`Your version of Node.js ${chalk.red(`(${process.version})`)} is lower than the required version to run Nodewood ${chalk.green(`(${REQUIRED_NODE_VERSION})`)}.`);
-    console.log('Please upgrade your version of Node.js');
+    log(`Your version of Node.js ${chalk.red(`(${process.version})`)} is lower than the required version to run Nodewood ${chalk.green(`(${REQUIRED_NODE_VERSION})`)}.`);
+    log('Please upgrade your version of Node.js');
   }
   // Display generic help
   else if (isInvalidCommand(command, commands) || isInvalidHelpCommand(command, args, commands)) {
@@ -93,24 +94,24 @@ function isInvalidNodeVersion() {
     }
     catch (error) {
       if (process.env.NODE_DEV === 'development') {
-        console.log('Logging error in development mode:');
-        console.log(error);
+        log('Logging error in development mode:');
+        log(error);
       }
 
-      console.log(chalk.red(`Could not complete your command.  If this continues, please email ${chalk.cyan('admin@nodewood.com')} for assistance.\n`));
+      log(chalk.red(`Could not complete your command.  If this continues, please email ${chalk.cyan('admin@nodewood.com')} for assistance.\n`));
 
       if (get(error, 'response.body.errors')) {
         const errorMessage = error.response.body.errors
           .map((errorEntry) => errorEntry.title)
           .join('. ');
 
-        console.log(`Error message: ${errorMessage}`);
+        log(`Error message: ${errorMessage}`);
       }
       else if (couldNotConnect(error)) {
-        console.log('Could not connect to the Nodewood server.  It may be temporarily down for an update.');
+        log('Could not connect to the Nodewood server.  It may be temporarily down for an update.');
       }
       else {
-        console.log(`Error message: ${error.message}`);
+        log(`Error message: ${error.message}`);
       }
     }
   }

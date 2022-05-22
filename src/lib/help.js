@@ -1,4 +1,5 @@
 const chalk = require('chalk');
+const { log } = require('../lib/log');
 
 /**
  * Show general CLI help.
@@ -7,19 +8,19 @@ const chalk = require('chalk');
  * @param {Object} commands - The commands to get help text from.
  */
 function showHelp(commands) {
-  console.log(`For additional help on a command, type ${chalk.cyan('nodewood help COMMAND')}.\n`);
+  log(`For additional help on a command, type ${chalk.cyan('nodewood help COMMAND')}.\n`);
 
-  console.log('Commands:');
+  log('Commands:');
 
   // eslint-disable-next-line no-restricted-syntax
   for (let command of Object.keys(commands)) {
     const paddedName = pad('          ', command);
     const instance = new commands[command]();
-    console.log(`  ${chalk.green(paddedName)} - ${chalk.yellow(instance.helpLine())}`);
+    log(`  ${chalk.green(paddedName)} - ${chalk.yellow(instance.helpLine())}`);
   }
 
-  console.log('\nGlobal flags:');
-  console.log(`  ${chalk.cyan('-v')} # Verbose output`);
+  log('\nGlobal flags:');
+  log(`  ${chalk.cyan('-v')} # Verbose output`);
 }
 
 /**

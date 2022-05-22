@@ -1,10 +1,4 @@
-const { get } = require('lodash');
-
 class Command {
-  constructor(args) {
-    this.verboseMode = get(args, 'v', false);
-  }
-
   /**
    * Returns the one-liner version of help text to display on the general help command.
    *
@@ -12,26 +6,6 @@ class Command {
    */
   helpLine() {
     return '';
-  }
-
-  /**
-   * Logs a message under all conditions.
-   *
-   * @param {String} message - The message to log.
-   */
-  log(message) {
-    console.log(message);
-  }
-
-  /**
-   * Logs a message when the verbose (-v) flag is set.
-   *
-   * @param {String} message - The message to log.
-   */
-  verbose(message) {
-    if (this.verboseMode) {
-      console.log(message);
-    }
   }
 
   /**

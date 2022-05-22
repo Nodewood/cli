@@ -8,6 +8,7 @@ const {
   getTailwindClassList,
   updateTailwindClasses,
 } = require('../lib/file');
+const { log } = require('../lib/log');
 
 class TailwindCommand extends Command {
   /**
@@ -25,10 +26,10 @@ class TailwindCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    this.log(this.helpLine());
+    log(this.helpLine());
 
-    this.log(chalk.yellow('\nUsage:'));
-    this.log('  nodewood tailwind:prefix  # Add a prefix to all tailwind classes.');
+    log(chalk.yellow('\nUsage:'));
+    log('  nodewood tailwind:prefix  # Add a prefix to all tailwind classes.');
   }
 
   /**
@@ -38,13 +39,13 @@ class TailwindCommand extends Command {
    */
   async execute(args) {
     if (! isNodewoodProject()) {
-      this.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
+      log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
       return;
     }
 
     const type = get(args._, 0, '').split(':')[1];
     if (type === 'prefix') {
-      this.log(chalk.red('Please make sure you have committed all current changes to source control before you begin.'));
+      log(chalk.red('Please make sure you have committed all current changes to source control before you begin.'));
 
       const prefix = await this.getPrefix();
       const classList = getTailwindClassList();
@@ -53,8 +54,8 @@ class TailwindCommand extends Command {
         (folder) => updateTailwindClasses(resolve(process.cwd(), folder), prefix, classList),
       );
 
-      this.log(chalk.yellow(`\nMake sure to update your ${chalk.cyan('app/tailwind.config.css')} with the following line:`));
-      this.log(chalk.cyan(`  prefix: '${prefix}',`));
+      log(chalk.yellow(`\nMake sure to update your ${chalk.cyan('app/tailwind.config.css')} with the following line:`));
+      log(chalk.cyan(`  prefix: '${prefix}',`));
     }
     else {
       this.helpDetailed();

@@ -4,6 +4,7 @@ const { get } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject, getProjectName } = require('../lib/file');
 const { getDockerCompose, getDockerConfigFolder } = require('../lib/docker');
+const { log } = require('../lib/log');
 
 class DevCommand extends Command {
   /**
@@ -21,13 +22,13 @@ class DevCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    this.log(this.helpLine());
+    log(this.helpLine());
 
-    this.log(chalk.yellow('\nUsage:'));
-    this.log('  nodewood dev');
+    log(chalk.yellow('\nUsage:'));
+    log('  nodewood dev');
 
-    this.log(chalk.yellow('\nOptions:'));
-    this.log(`  ${chalk.cyan('-d')}    # Run in detached (background) mode.`);
+    log(chalk.yellow('\nOptions:'));
+    log(`  ${chalk.cyan('-d')}    # Run in detached (background) mode.`);
   }
 
   /**
@@ -37,7 +38,7 @@ class DevCommand extends Command {
    */
   async execute(args) {
     if (! isNodewoodProject()) {
-      this.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
+      log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
       return;
     }
 

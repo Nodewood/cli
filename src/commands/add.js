@@ -22,6 +22,7 @@ const {
 const { pluralize } = require('../lib/text');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
+const { log } = require('../lib/log');
 
 const NODEWOOD_PREFIX = 'nodewood-';
 
@@ -74,32 +75,32 @@ class AddCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    this.log(this.helpLine());
+    log(this.helpLine());
 
-    this.log(chalk.yellow('\nUsage:'));
-    this.log('  nodewood add:TYPE FEATURE [NAME] [OPTIONS]');
+    log(chalk.yellow('\nUsage:'));
+    log('  nodewood add:TYPE FEATURE [NAME] [OPTIONS]');
 
-    this.log(chalk.yellow('\nParameters:'));
-    this.log(`  ${chalk.cyan('TYPE')}     # What to add to your app`);
-    this.log(`           # Allowed: ${chalk.cyan('feature')}, ${chalk.cyan('controller')}, ${chalk.cyan('service')}, ${chalk.cyan('page')}, ${chalk.cyan('dialog')}, ${chalk.cyan('store')}, ${chalk.cyan('validator')}, ${chalk.cyan('model')}`);
-    this.log(`  ${chalk.cyan('FEATURE')}  # The name of the feature to add, or the feature to add file to`);
-    this.log(`  ${chalk.cyan('NAME')}     # The name of the file to add (optional)`);
-    this.log(`  ${chalk.cyan('OPTIONS')}  # Options (see below)`);
+    log(chalk.yellow('\nParameters:'));
+    log(`  ${chalk.cyan('TYPE')}     # What to add to your app`);
+    log(`           # Allowed: ${chalk.cyan('feature')}, ${chalk.cyan('controller')}, ${chalk.cyan('service')}, ${chalk.cyan('page')}, ${chalk.cyan('dialog')}, ${chalk.cyan('store')}, ${chalk.cyan('validator')}, ${chalk.cyan('model')}`);
+    log(`  ${chalk.cyan('FEATURE')}  # The name of the feature to add, or the feature to add file to`);
+    log(`  ${chalk.cyan('NAME')}     # The name of the file to add (optional)`);
+    log(`  ${chalk.cyan('OPTIONS')}  # Options (see below)`);
 
-    this.log(`\nNote: ${chalk.cyan('FEATURE')} and ${chalk.cyan('NAME')} must be kebab-case.`);
+    log(`\nNote: ${chalk.cyan('FEATURE')} and ${chalk.cyan('NAME')} must be kebab-case.`);
 
-    this.log(chalk.yellow('\nOptions:'));
-    this.log(`  ${chalk.cyan('--overwrite')}     # Overwrite existing files (does not apply to migrations)`);
-    this.log(`  ${chalk.cyan('--no-examples')}   # Do not add controller, service, page, etc examples to new feature`);
-    this.log(`  ${chalk.cyan('--no-init')}       # Do not modify init.js when adding page or store`);
-    this.log(`  ${chalk.cyan('--plural=PLURAL')} # Use a custom plural`);
+    log(chalk.yellow('\nOptions:'));
+    log(`  ${chalk.cyan('--overwrite')}     # Overwrite existing files (does not apply to migrations)`);
+    log(`  ${chalk.cyan('--no-examples')}   # Do not add controller, service, page, etc examples to new feature`);
+    log(`  ${chalk.cyan('--no-init')}       # Do not modify init.js when adding page or store`);
+    log(`  ${chalk.cyan('--plural=PLURAL')} # Use a custom plural`);
 
-    this.log(chalk.yellow('\nExamples:'));
-    this.log('  nodewood add:feature api-tokens --no-examples');
-    this.log('  nodewood add:migration api-tokens');
-    this.log('  nodewood add:dialog api-tokens edit-token --overwrite');
-    this.log('  nodewood add:page api-tokens list-tokens --no-init');
-    this.log('  nodewood add:script api-tokens refresh-tokens');
+    log(chalk.yellow('\nExamples:'));
+    log('  nodewood add:feature api-tokens --no-examples');
+    log('  nodewood add:migration api-tokens');
+    log('  nodewood add:dialog api-tokens edit-token --overwrite');
+    log('  nodewood add:page api-tokens list-tokens --no-init');
+    log('  nodewood add:script api-tokens refresh-tokens');
   }
 
   /**
@@ -109,7 +110,7 @@ class AddCommand extends Command {
    */
   async execute(args) {
     if (! isNodewoodProject()) {
-      this.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
+      log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
       return;
     }
 
@@ -125,7 +126,7 @@ class AddCommand extends Command {
       let name = get(args._, 1, false);
 
       if (! name) {
-        this.log(chalk.red('You must enter a feature name.'));
+        log(chalk.red('You must enter a feature name.'));
         return;
       }
 
@@ -149,7 +150,7 @@ class AddCommand extends Command {
       }
 
       if (! existsSync(resolve(process.cwd(), `app/features/${feature}`))) {
-        this.log(chalk.red(`Feature '${feature}' does not exist at 'app/features/${feature}'.`));
+        log(chalk.red(`Feature '${feature}' does not exist at 'app/features/${feature}'.`));
         return;
       }
 
@@ -178,7 +179,7 @@ class AddCommand extends Command {
         this.addScript(feature, name, parsedArgs);
       }
       else {
-        this.log(chalk.red(`Invalid type to add: '${toAdd}'`));
+        log(chalk.red(`Invalid type to add: '${toAdd}'`));
       }
     }
   }
@@ -251,19 +252,19 @@ class AddCommand extends Command {
     const targetDir = resolve(process.cwd(), `app/features/${name}`);
 
     if (name.substr(0, 9) === NODEWOOD_PREFIX) {
-      this.log(chalk.red(`Feature cannot start with '${chalk.cyan(NODEWOOD_PREFIX)}'.`));
-      this.log('This keeps future Nodewood features from interfering with yours.');
+      log(chalk.red(`Feature cannot start with '${chalk.cyan(NODEWOOD_PREFIX)}'.`));
+      log('This keeps future Nodewood features from interfering with yours.');
       return;
     }
 
     if (overwrite) {
       emptyDirSync(targetDir);
-      this.log('Target directory being overwritten.');
+      log('Target directory being overwritten.');
     }
     // If not overwriting, ensure feature does not already exist
     else if (existsSync(targetDir)) {
-      this.log(chalk.red(`The folder for feature '${chalk.cyan(name)}' already exists.`));
-      this.log(`Please ensure the folder 'app/features/${chalk.cyan(name)}' does not exist.`);
+      log(chalk.red(`The folder for feature '${chalk.cyan(name)}' already exists.`));
+      log(`Please ensure the folder 'app/features/${chalk.cyan(name)}' does not exist.`);
       return;
     }
 
@@ -280,12 +281,12 @@ class AddCommand extends Command {
       writeFileSync(file.path, this.templateString(contents, name, fileNames));
     });
 
-    this.log('Feature created at:');
-    this.log(chalk.cyan(targetDir));
+    log('Feature created at:');
+    log(chalk.cyan(targetDir));
 
     if (examples) {
-      this.log(`Name: ${name}`);
-      this.log(`Plural: ${plural}`);
+      log(`Name: ${name}`);
+      log(`Plural: ${plural}`);
 
       this.addController(name, plural, { customPlural: customPlural || plural, overwrite });
       this.addService(name, plural, { customPlural: customPlural || plural, overwrite });
@@ -300,8 +301,8 @@ class AddCommand extends Command {
       this.addMigration(customPlural || plural);
     }
 
-    this.log(`\nTo enable your new feature, add '${chalk.cyan(name)}' to the '${chalk.cyan('features')}' array in '${chalk.cyan('app/config/app.js')}'.`);
-    this.log(`To add your feature to the sidebar, add an entry for it to the '${chalk.cyan('sidebar')}' array in '${chalk.cyan('app/config/ui.js')}'.`);
+    log(`\nTo enable your new feature, add '${chalk.cyan(name)}' to the '${chalk.cyan('features')}' array in '${chalk.cyan('app/config/app.js')}'.`);
+    log(`To add your feature to the sidebar, add an entry for it to the '${chalk.cyan('sidebar')}' array in '${chalk.cyan('app/config/ui.js')}'.`);
   }
 
   /**
@@ -321,9 +322,9 @@ class AddCommand extends Command {
       this.templateString(contents, names, names),
     );
 
-    this.log('Migration created at:');
-    this.log(chalk.cyan(targetPath));
-    this.log(`\nAfter editing, make sure to run migrations with ${chalk.cyan('nodewood migrate')} and restart your API server.`); // eslint-disable-line max-len
+    log('Migration created at:');
+    log(chalk.cyan(targetPath));
+    log(`\nAfter editing, make sure to run migrations with ${chalk.cyan('nodewood migrate')} and restart your API server.`); // eslint-disable-line max-len
   }
 
   /**
@@ -346,14 +347,14 @@ class AddCommand extends Command {
     // Don't accidentally overwrite these files
     if (! overwrite) {
       if (existsSync(controllerTarget)) {
-        this.log(chalk.red('The controller you are trying to create already exists.'));
-        this.log(`Please ensure the file '${chalk.cyan(controllerTarget)}' does not exist or set the --overwrite option.`);
+        log(chalk.red('The controller you are trying to create already exists.'));
+        log(`Please ensure the file '${chalk.cyan(controllerTarget)}' does not exist or set the --overwrite option.`);
         return;
       }
 
       if (existsSync(testTarget)) {
-        this.log(chalk.red('The controller test you are trying to create already exists.'));
-        this.log(`Please ensure the file '${chalk.cyan(testTarget)}' does not exist or set the --overwrite option.`);
+        log(chalk.red('The controller test you are trying to create already exists.'));
+        log(`Please ensure the file '${chalk.cyan(testTarget)}' does not exist or set the --overwrite option.`);
         return;
       }
     }
@@ -372,9 +373,9 @@ class AddCommand extends Command {
       this.templateString(testContents, feature, fileNames),
     );
 
-    this.log('Controller and tests created at:');
-    this.log(chalk.cyan(controllerTarget));
-    this.log(chalk.cyan(testTarget));
+    log('Controller and tests created at:');
+    log(chalk.cyan(controllerTarget));
+    log(chalk.cyan(testTarget));
   }
 
   /**
@@ -399,8 +400,8 @@ class AddCommand extends Command {
 
     // Don't accidentally overwrite the file
     if (! overwrite && existsSync(target)) {
-      this.log(chalk.red(`The ${type} you are trying to create already exists.`));
-      this.log(`Please ensure the file '${chalk.cyan(target)}' does not exist or set the --overwrite option.`);
+      log(chalk.red(`The ${type} you are trying to create already exists.`));
+      log(`Please ensure the file '${chalk.cyan(target)}' does not exist or set the --overwrite option.`);
       return;
     }
 
@@ -408,8 +409,8 @@ class AddCommand extends Command {
     const contents = readFileSync(target, 'utf-8');
     writeFileSync(target, this.templateString(contents, feature, fileNames));
 
-    this.log(`${upperFirst(type)} created at:`);
-    this.log(chalk.cyan(target));
+    log(`${upperFirst(type)} created at:`);
+    log(chalk.cyan(target));
   }
 
   /**
@@ -471,7 +472,7 @@ class AddCommand extends Command {
 
     if (init && ! this.addRouteToInit(feature, name, customPlural)) {
       this.deleteFile(name, `app/features/${feature}/ui/pages/<%= fileNamePlural %>Page.vue`);
-      this.log(chalk.red('Page removed.'));
+      log(chalk.red('Page removed.'));
     }
   }
 
@@ -497,13 +498,13 @@ class AddCommand extends Command {
 
     // Don't add route if it already exists
     if (initFile.includes(`path: '/${fileNames.kebabName}'`)) {
-      this.log(chalk.red(`Path ${chalk.cyan(`/${fileNames.kebabName}`)} already exists in routes in ${chalk.cyan(`app/features/${feature}/ui/init.js`)}.`));
-      this.log(chalk.red('Please remove this route and try your command again.'));
+      log(chalk.red(`Path ${chalk.cyan(`/${fileNames.kebabName}`)} already exists in routes in ${chalk.cyan(`app/features/${feature}/ui/init.js`)}.`));
+      log(chalk.red('Please remove this route and try your command again.'));
       return false;
     }
 
     writeFileSync(target, initFile.replace(ROUTE_LINE, `${routeFragment}\n${ROUTE_LINE}`));
-    this.log(`Route for ${chalk.cyan(name)} added to init.js.`);
+    log(`Route for ${chalk.cyan(name)} added to init.js.`);
 
     return true;
   }
@@ -610,7 +611,7 @@ class AddCommand extends Command {
 
     if (init && ! this.addStoreToInit(feature, name, customPlural)) {
       this.deleteFile(name, `app/features/${feature}/ui/stores/<%= fileNamePlural %>Store.js`);
-      this.log(chalk.red('Store removed.'));
+      log(chalk.red('Store removed.'));
     }
   }
 
@@ -636,13 +637,13 @@ class AddCommand extends Command {
 
     // Don't add route if it already exists
     if (initFile.includes(`'#features/${feature}/ui/stores/${fileNames.pascalPluralName}Store'`)) {
-      this.log(chalk.red(`Store ${chalk.cyan(`${fileNames.pascalPluralName}Store`)} already exists in ${chalk.cyan(`app/features/${feature}/ui/init.js`)}.`));
-      this.log(chalk.red('Please remove this store and try your command again.'));
+      log(chalk.red(`Store ${chalk.cyan(`${fileNames.pascalPluralName}Store`)} already exists in ${chalk.cyan(`app/features/${feature}/ui/init.js`)}.`));
+      log(chalk.red('Please remove this store and try your command again.'));
       return false;
     }
 
     writeFileSync(target, initFile.replace(STORE_LINE, `${storeFragment}\n${STORE_LINE}`));
-    this.log(`Store for ${chalk.cyan(name)} added to init.js.`);
+    log(`Store for ${chalk.cyan(name)} added to init.js.`);
 
     return true;
   }

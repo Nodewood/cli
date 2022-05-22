@@ -4,6 +4,7 @@ const { resolve, extname } = require('path');
 const { pathExistsSync, copySync } = require('fs-extra');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
+const { log } = require('../lib/log');
 
 const checkExtensions = ['js', 'vue', 'css'];
 
@@ -23,13 +24,13 @@ class EjectCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    this.log(this.helpLine());
+    log(this.helpLine());
 
-    this.log(chalk.yellow('\nUsage:'));
-    this.log('  nodewood eject \'FILE\'');
+    log(chalk.yellow('\nUsage:'));
+    log('  nodewood eject \'FILE\'');
 
-    this.log(chalk.yellow('\nOptions:'));
-    this.log(`  ${chalk.cyan('--overwrite')}     # Overwrite existing file in app folder`);
+    log(chalk.yellow('\nOptions:'));
+    log(`  ${chalk.cyan('--overwrite')}     # Overwrite existing file in app folder`);
   }
 
   /**
@@ -39,14 +40,14 @@ class EjectCommand extends Command {
    */
   async execute(args) {
     if (! isNodewoodProject()) {
-      this.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
+      log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
       return;
     }
 
     const file = get(args._, 1, false);
 
     if (! file) {
-      this.log(chalk.red('You must specify a file.  If the file begisn with #, ensure is enclosed in quotes.'));
+      log(chalk.red('You must specify a file.  If the file begisn with #, ensure is enclosed in quotes.'));
     }
 
     const overwrite = get(args, 'overwrite', false);
@@ -55,7 +56,7 @@ class EjectCommand extends Command {
 
     copySync(woodPath, appPath, { overwrite, errorOnExist: true });
 
-    this.log(`File ejected to ${chalk.cyan(appPath)}`);
+    log(`File ejected to ${chalk.cyan(appPath)}`);
   }
 
   /**

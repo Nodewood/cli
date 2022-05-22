@@ -6,6 +6,7 @@ const { first, uniq, compact } = require('lodash');
 const { parse } = require('css');
 const klawSync = require('klaw-sync');
 const { IncrementableProgress } = require('../lib/ui');
+const { log } = require('../lib/log');
 
 /**
  * @type {Array} Scripts that need to have the execution bit set after unzipping.
@@ -28,7 +29,7 @@ function isNodewoodProject() {
   }
   catch (error) {
     if (process.env.NODE_DEV === 'development') {
-      console.log(error);
+      log(error);
     }
 
     return false;
@@ -62,8 +63,8 @@ function getTailwindClassList() {
   const cssFile = resolve((process.cwd(), 'node_modules/tailwindcss/dist/tailwind.css'));
 
   if (! existsSync(cssFile)) {
-    console.log(chalk.red(`Compiled ${chalk.cyan('tailwind.css')} file does not exist.`));
-    console.log(chalk.red(`Please ensure you have successfully run ${chalk.cyan('nodewood dev')} at least once.`));
+    log(chalk.red(`Compiled ${chalk.cyan('tailwind.css')} file does not exist.`));
+    log(chalk.red(`Please ensure you have successfully run ${chalk.cyan('nodewood dev')} at least once.`));
 
     throw new Error('Compiled tailwind.css file does not exist.');
   }
@@ -118,7 +119,7 @@ function updateTailwindClasses(path, prefix, classList) {
  * @param {String} path - The project path to install node_modules for.
  */
 function yarnInstall(path) {
-  console.log('Installing node modules...');
+  log('Installing node modules...');
   execSync('yarn install', {
     cwd: path,
     stdio: 'inherit',

@@ -5,6 +5,7 @@ const { readJsonSync, writeJsonSync } = require('fs-extra');
 const { get, last, sortBy, omit, omitBy, isNil, isEqual, flatMap, invert } = require('lodash');
 const { resolve } = require('path');
 const { IncrementableProgress } = require('./ui');
+const { log } = require('../lib/log');
 
 const ALLOWED_UPDATE_KEYS = {
   product: [
@@ -79,10 +80,10 @@ function getLocalConfig() {
   }
   catch (error) {
     if (error.code === 'ENOENT') {
-      console.log(chalk.red(`Could not find '${chalk.cyan(resolve(process.cwd(), 'app/config/stripe.json'))}'.`));
+      log(chalk.red(`Could not find '${chalk.cyan(resolve(process.cwd(), 'app/config/stripe.json'))}'.`));
     }
     else {
-      console.log(chalk.red(error.message));
+      log(chalk.red(error.message));
     }
 
     throw error;
@@ -380,8 +381,8 @@ function getUpdatedEntries(localEntries, remoteEntries, entryName) {
     const remoteEntry = last(remoteEntries.filter((remote) => remote.id === localEntry.id));
 
     if (! remoteEntry) {
-      console.log(chalk.yellow(`Local ${entryName} '${chalk.cyan(localEntry.id)}' has an ID but does not exist remotely.`));
-      console.log(chalk.yellow(`This could be because you deleted a ${entryName} on Stripe, but not from your config.\n`));
+      log(chalk.yellow(`Local ${entryName} '${chalk.cyan(localEntry.id)}' has an ID but does not exist remotely.`));
+      log(chalk.yellow(`This could be because you deleted a ${entryName} on Stripe, but not from your config.\n`));
       return false;
     }
 
@@ -392,7 +393,7 @@ function getUpdatedEntries(localEntries, remoteEntries, entryName) {
     // Print a warning for all keys attempting to be changed that cannot be
     differences.filter((key) => ! ALLOWED_UPDATE_KEYS[entryName].includes(key))
       .forEach((key) => {
-        console.log(chalk.yellow(`Local ${entryName} '${chalk.cyan(localEntry.id)}' has a modified ${key}, which cannot be modified and will be ignored.`));
+        log(chalk.yellow(`Local ${entryName} '${chalk.cyan(localEntry.id)}' has a modified ${key}, which cannot be modified and will be ignored.`));
       });
 
     // Entity is updated only if any of the keys allowed to be updated are modified
