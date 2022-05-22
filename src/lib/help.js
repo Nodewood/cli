@@ -17,6 +17,9 @@ function showHelp(commands) {
     const instance = new commands[command]();
     console.log(`  ${chalk.green(paddedName)} - ${chalk.yellow(instance.helpLine())}`);
   }
+
+  console.log('\nGlobal flags:');
+  console.log(`  ${chalk.cyan('-v')} # Verbose output`);
 }
 
 /**

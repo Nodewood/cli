@@ -21,13 +21,13 @@ class RollbackCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    console.log(this.helpLine());
+    this.log(this.helpLine());
 
-    console.log(chalk.yellow('\nUsage:'));
-    console.log('  nodewood rollback');
+    this.log(chalk.yellow('\nUsage:'));
+    this.log('  nodewood rollback');
 
-    console.log(chalk.yellow('\nOptions:'));
-    console.log(`  ${chalk.cyan('--test')}  # Rollback migrations against test database.`);
+    this.log(chalk.yellow('\nOptions:'));
+    this.log(`  ${chalk.cyan('--test')}  # Rollback migrations against test database.`);
   }
 
   /**
@@ -37,7 +37,7 @@ class RollbackCommand extends Command {
    */
   async execute(args) {
     if (! isNodewoodProject()) {
-      console.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
+      this.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
       return;
     }
 

@@ -88,7 +88,7 @@ function isInvalidNodeVersion() {
   // Execute a command
   else {
     try {
-      const instance = new commands[command]();
+      const instance = new commands[command](args);
       await instance.execute(args);
     }
     catch (error) {

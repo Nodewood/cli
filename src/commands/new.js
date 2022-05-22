@@ -58,14 +58,15 @@ class NewCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    console.log(this.helpLine());
+    this.log(this.helpLine());
 
-    console.log(chalk.yellow('\nUsage:'));
-    console.log('  nodewood new DIR');
+    this.log(chalk.yellow('\nUsage:'));
+    this.log('  nodewood new DIR');
 
-    console.log(chalk.yellow('\nOptions:'));
-    console.log(`  ${chalk.cyan('--overwrite')}    # Overwrite existing files`);
-    console.log(`  ${chalk.cyan('--skip-check')}   # Skip environment check`);
+    this.log(chalk.yellow('\nOptions:'));
+    this.log(`  ${chalk.cyan('--overwrite')}    # Overwrite existing files`);
+    this.log(`  ${chalk.cyan('--skip-check')}   # Skip environment check`);
+    this.log(`  ${chalk.cyan('-v')}             # Verbose output`);
   }
 
   /**
@@ -90,8 +91,8 @@ class NewCommand extends Command {
     const path = pathResolve(process.cwd(), pathArg);
 
     if (! overwrite && ! this.isEmptyDirectory(path)) {
-      console.log(chalk.red(`Directory '${chalk.cyan(path)}' must be empty.`));
-      console.log(`\nTo overwrite existing files, add the ${chalk.cyan('--overwrite')} option to your command.`);
+      this.log(chalk.red(`Directory '${chalk.cyan(path)}' must be empty.`));
+      this.log(`\nTo overwrite existing files, add the ${chalk.cyan('--overwrite')} option to your command.`);
       return;
     }
 
@@ -108,8 +109,8 @@ class NewCommand extends Command {
     await this.copyEnvFile(path);
     yarnInstall(path);
 
-    console.log('New project created at:');
-    console.log(chalk.cyan(path));
+    this.log('New project created at:');
+    this.log(chalk.cyan(path));
 
     if (templateVersions.downloaded !== templateVersions.latest
       || woodVersions.downloaded !== woodVersions.latest) {
@@ -120,11 +121,11 @@ class NewCommand extends Command {
         ? woodVersions.downloaded
         : templateVersions.downloaded;
 
-      console.log(chalk.yellow(`\nA later version of Nodewood (${latest}) is available than what your license allows you to download (${downloaded}).`)); // eslint-disable-line max-len
-      console.log(chalk.yellow(`Log in to your account at ${chalk.cyan('https://nodewood.com')} and purchase an extension to your license to download the latest updates.`)); // eslint-disable-line max-len
+      this.log(chalk.yellow(`\nA later version of Nodewood (${latest}) is available than what your license allows you to download (${downloaded}).`)); // eslint-disable-line max-len
+      this.log(chalk.yellow(`Log in to your account at ${chalk.cyan('https://nodewood.com')} and purchase an extension to your license to download the latest updates.`)); // eslint-disable-line max-len
     }
 
-    console.log('\n To continue the installation, visit https://nodewood.com/docs/getting-started/installation/.');
+    this.log('\n To continue the installation, visit https://nodewood.com/docs/getting-started/installation/.');
   }
 
   /**
@@ -307,10 +308,10 @@ class NewCommand extends Command {
     ]));
 
     if (missingPrograms.length) {
-      console.log(chalk.red('Could not create new project, the following programs are not installed:'));
-      missingPrograms.forEach((program) => console.log(`- ${chalk.cyan(program)}`));
+      this.log(chalk.red('Could not create new project, the following programs are not installed:'));
+      missingPrograms.forEach((program) => this.log(`- ${chalk.cyan(program)}`));
 
-      console.log(`\nTo skip this check, add the ${chalk.cyan('--skip-check')} option to your command.`);
+      this.log(`\nTo skip this check, add the ${chalk.cyan('--skip-check')} option to your command.`);
 
       return false;
     }

@@ -21,13 +21,13 @@ class DevCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    console.log(this.helpLine());
+    this.log(this.helpLine());
 
-    console.log(chalk.yellow('\nUsage:'));
-    console.log('  nodewood dev');
+    this.log(chalk.yellow('\nUsage:'));
+    this.log('  nodewood dev');
 
-    console.log(chalk.yellow('\nOptions:'));
-    console.log(`  ${chalk.cyan('-d')}    # Run in detached (background) mode.`);
+    this.log(chalk.yellow('\nOptions:'));
+    this.log(`  ${chalk.cyan('-d')}    # Run in detached (background) mode.`);
   }
 
   /**
@@ -37,7 +37,7 @@ class DevCommand extends Command {
    */
   async execute(args) {
     if (! isNodewoodProject()) {
-      console.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
+      this.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
       return;
     }
 

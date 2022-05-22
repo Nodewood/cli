@@ -25,10 +25,10 @@ class TailwindCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    console.log(this.helpLine());
+    this.log(this.helpLine());
 
-    console.log(chalk.yellow('\nUsage:'));
-    console.log('  nodewood tailwind:prefix  # Add a prefix to all tailwind classes.');
+    this.log(chalk.yellow('\nUsage:'));
+    this.log('  nodewood tailwind:prefix  # Add a prefix to all tailwind classes.');
   }
 
   /**
@@ -38,13 +38,13 @@ class TailwindCommand extends Command {
    */
   async execute(args) {
     if (! isNodewoodProject()) {
-      console.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
+      this.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
       return;
     }
 
     const type = get(args._, 0, '').split(':')[1];
     if (type === 'prefix') {
-      console.log(chalk.red('Please make sure you have committed all current changes to source control before you begin.'));
+      this.log(chalk.red('Please make sure you have committed all current changes to source control before you begin.'));
 
       const prefix = await this.getPrefix();
       const classList = getTailwindClassList();
@@ -53,8 +53,8 @@ class TailwindCommand extends Command {
         (folder) => updateTailwindClasses(resolve(process.cwd(), folder), prefix, classList),
       );
 
-      console.log(chalk.yellow(`\nMake sure to update your ${chalk.cyan('app/tailwind.config.css')} with the following line:`));
-      console.log(chalk.cyan(`  prefix: '${prefix}',`));
+      this.log(chalk.yellow(`\nMake sure to update your ${chalk.cyan('app/tailwind.config.css')} with the following line:`));
+      this.log(chalk.cyan(`  prefix: '${prefix}',`));
     }
     else {
       this.helpDetailed();

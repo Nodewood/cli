@@ -23,13 +23,13 @@ class EjectCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    console.log(this.helpLine());
+    this.log(this.helpLine());
 
-    console.log(chalk.yellow('\nUsage:'));
-    console.log('  nodewood eject \'FILE\'');
+    this.log(chalk.yellow('\nUsage:'));
+    this.log('  nodewood eject \'FILE\'');
 
-    console.log(chalk.yellow('\nOptions:'));
-    console.log(`  ${chalk.cyan('--overwrite')}     # Overwrite existing file in app folder`);
+    this.log(chalk.yellow('\nOptions:'));
+    this.log(`  ${chalk.cyan('--overwrite')}     # Overwrite existing file in app folder`);
   }
 
   /**
@@ -39,14 +39,14 @@ class EjectCommand extends Command {
    */
   async execute(args) {
     if (! isNodewoodProject()) {
-      console.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
+      this.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
       return;
     }
 
     const file = get(args._, 1, false);
 
     if (! file) {
-      console.log(chalk.red('You must specify a file.  If the file begisn with #, ensure is enclosed in quotes.'));
+      this.log(chalk.red('You must specify a file.  If the file begisn with #, ensure is enclosed in quotes.'));
     }
 
     const overwrite = get(args, 'overwrite', false);
@@ -55,7 +55,7 @@ class EjectCommand extends Command {
 
     copySync(woodPath, appPath, { overwrite, errorOnExist: true });
 
-    console.log(`File ejected to ${chalk.cyan(appPath)}`);
+    this.log(`File ejected to ${chalk.cyan(appPath)}`);
   }
 
   /**

@@ -64,15 +64,15 @@ class StripeCommand extends Command {
    * @return {String}
    */
   helpDetailed() {
-    console.log(this.helpLine());
+    this.log(this.helpLine());
 
-    console.log(chalk.yellow('\nUsage:'));
-    console.log('  nodewood stripe:diff    # Show the difference between your config and live plans');
-    console.log('  nodewood stripe:sync    # Update the live plans to match your config');
-    console.log('  nodewood stripe:import  # Imports current live plans as a Nodewood config');
+    this.log(chalk.yellow('\nUsage:'));
+    this.log('  nodewood stripe:diff    # Show the difference between your config and live plans');
+    this.log('  nodewood stripe:sync    # Update the live plans to match your config');
+    this.log('  nodewood stripe:import  # Imports current live plans as a Nodewood config');
 
-    console.log(chalk.yellow('\nOptions:'));
-    console.log(`  ${chalk.cyan('--no-confirm')}     # Do not confirm before syncing`);
+    this.log(chalk.yellow('\nOptions:'));
+    this.log(`  ${chalk.cyan('--no-confirm')}     # Do not confirm before syncing`);
   }
 
   /**
@@ -82,12 +82,12 @@ class StripeCommand extends Command {
    */
   async execute(args) {
     if (! isNodewoodProject()) {
-      console.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
+      this.log(chalk.red('The current directory is not a Nodewood project.\nPlease re-run your command from the root of a Nodewood project.')); // eslint-disable-line max-len
       return;
     }
 
     if (! get(process.env, 'STRIPE_SK')) {
-      console.log(chalk.red('Stripe Secret Key (STRIPE_SK) is not SET in .env file.'));
+      this.log(chalk.red('Stripe Secret Key (STRIPE_SK) is not SET in .env file.'));
       return;
     }
 
@@ -111,7 +111,7 @@ class StripeCommand extends Command {
       this.helpDetailed();
     }
     else {
-      console.log(chalk.red(`Invalid stripe command: '${type}'.`));
+      this.log(chalk.red(`Invalid stripe command: '${type}'.`));
     }
   }
 
@@ -126,93 +126,93 @@ class StripeCommand extends Command {
     preamble = 'Differences between your local config and existing Stripe config:\n',
   ) {
     if (countDifferences(differences) === 0) {
-      console.log('No differences between your local config and existing Stripe config.');
+      this.log('No differences between your local config and existing Stripe config.');
       return;
     }
 
-    console.log(preamble);
+    this.log(preamble);
 
     // New products
     differences.products.new.forEach((product) => {
-      console.log(chalk.green(`New product: ${getProductFullName(product)}`));
+      this.log(chalk.green(`New product: ${getProductFullName(product)}`));
       product.prices.forEach((price) => {
-        console.log(chalk.green(`  New price: ${getPriceFullName(price)}`));
+        this.log(chalk.green(`  New price: ${getPriceFullName(price)}`));
       });
     });
 
     // Updated products
     differences.products.updated.forEach((product) => {
-      console.log(chalk.green(`Updated product: ${getProductFullName(product)}`));
+      this.log(chalk.green(`Updated product: ${getProductFullName(product)}`));
 
       getEntityDifferences(omit(product, 'prices'), this.remoteConfig.products)
         .forEach((difference) => {
-          console.log(`  Changed ${difference.key}: '${chalk.red(formatDifference(difference.from))}' to '${chalk.green(formatDifference(difference.to))}'`);
+          this.log(`  Changed ${difference.key}: '${chalk.red(formatDifference(difference.from))}' to '${chalk.green(formatDifference(difference.to))}'`);
         });
     });
 
     // Deactivated products
     differences.products.deactivated.forEach((product) => {
-      console.log(chalk.red(`Deactivated product: ${getProductFullName(product)}`));
+      this.log(chalk.red(`Deactivated product: ${getProductFullName(product)}`));
     });
 
     // New prices
     differences.prices.new.forEach((price) => {
-      console.log(chalk.green(`New price: ${getPriceFullName(price)}`));
+      this.log(chalk.green(`New price: ${getPriceFullName(price)}`));
     });
 
     // Updated prices
     differences.prices.updated.forEach((price) => {
-      console.log(chalk.green(`Updated price: ${getPriceFullName(price)}`));
+      this.log(chalk.green(`Updated price: ${getPriceFullName(price)}`));
 
       getEntityDifferences(omit(price, 'product'), this.remoteConfig.prices)
         .forEach((difference) => {
-          console.log(`  Changed ${difference.key}: '${chalk.red(formatDifference(difference.from))}' to '${chalk.green(formatDifference(difference.to))}'`);
+          this.log(`  Changed ${difference.key}: '${chalk.red(formatDifference(difference.from))}' to '${chalk.green(formatDifference(difference.to))}'`);
         });
     });
 
     // Deactivated prices
     differences.prices.deactivated.forEach((price) => {
-      console.log(chalk.red(`Deactivated price: ${getPriceFullName(price)}`));
+      this.log(chalk.red(`Deactivated price: ${getPriceFullName(price)}`));
     });
 
     // New taxes
     differences.taxes.new.forEach((tax) => {
-      console.log(chalk.green(`New tax: ${getTaxFullName(tax)}`));
+      this.log(chalk.green(`New tax: ${getTaxFullName(tax)}`));
     });
 
     // Updated taxes
     differences.taxes.updated.forEach((tax) => {
-      console.log(chalk.green(`Updated tax: ${getTaxFullName(tax)}`));
+      this.log(chalk.green(`Updated tax: ${getTaxFullName(tax)}`));
 
       getEntityDifferences(tax, this.remoteConfig.taxes)
         .forEach((difference) => {
-          console.log(`  Changed ${difference.key}: '${chalk.red(formatDifference(difference.from))}' to '${chalk.green(formatDifference(difference.to))}'`);
+          this.log(`  Changed ${difference.key}: '${chalk.red(formatDifference(difference.from))}' to '${chalk.green(formatDifference(difference.to))}'`);
         });
     });
 
     // Deactivated taxes
     differences.taxes.deactivated.forEach((tax) => {
-      console.log(chalk.red(`Deactivated tax: ${getTaxFullName(tax)}`));
+      this.log(chalk.red(`Deactivated tax: ${getTaxFullName(tax)}`));
     });
 
     // New coupons
     differences.coupons.new.forEach((tax) => {
-      console.log(chalk.green(`New coupon: ${getCouponFullName(tax)}`));
+      this.log(chalk.green(`New coupon: ${getCouponFullName(tax)}`));
     });
 
     // Updated coupons
     differences.coupons.updated.forEach((coupon) => {
-      console.log(chalk.green(`Updated coupon: ${getCouponFullName(coupon)}`));
+      this.log(chalk.green(`Updated coupon: ${getCouponFullName(coupon)}`));
 
       getEntityDifferences(coupon, this.remoteConfig.coupons)
         .forEach((difference) => {
-          console.log(`  Changed ${difference.key}: '${chalk.red(formatDifference(difference.from))}' to '${chalk.green(formatDifference(difference.to))}'`);
+          this.log(`  Changed ${difference.key}: '${chalk.red(formatDifference(difference.from))}' to '${chalk.green(formatDifference(difference.to))}'`);
         });
     });
 
     // Deleted coupons
     differences.coupons.deactivated.forEach((coupon) => {
-      console.log(chalk.red(`Deleted coupon: ${getCouponFullName(coupon)}`));
+      this.log(chalk.red(`Deleted coupon: ${getCouponFullName(coupon)}`));
     });
   }
 
@@ -241,7 +241,7 @@ class StripeCommand extends Command {
   async import() {
     writeLocalConfig(this.remoteConfig);
 
-    console.log(`${chalk.cyan(resolve(process.cwd(), 'app/config/stripe.json'))} has been created from existing Stripe configuration.`);
+    this.log(`${chalk.cyan(resolve(process.cwd(), 'app/config/stripe.json'))} has been created from existing Stripe configuration.`);
   }
 }
 
