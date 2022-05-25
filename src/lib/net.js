@@ -1,12 +1,11 @@
 const { resolve } = require('path');
-const unzipper = require('unzipper');
+const AdmZip = require('adm-zip');
 const superagent = require('superagent');
 const moment = require('moment');
 const {
   readJsonSync,
   emptyDirSync,
   createWriteStream,
-  createReadStream,
   removeSync,
 } = require('fs-extra');
 const { hmac } = require('../lib/hmac');
@@ -35,11 +34,19 @@ const URL_SUFFIX_WOOD = '/releases/wood/latest/download';
 function buildRequest(method, url, apiKey, secretKey) {
   const packageObj = readJsonSync(resolve(__dirname, '../../package.json'));
   const ts = moment().format();
+  const hmacHash = hmac({ apiKey }, ts, secretKey);
   const request = superagent(method, url)
     .set('api-key', apiKey)
     .set('ts', ts)
     .set('cli-version', packageObj.version)
-    .set('hmac-hash', hmac({ apiKey }, ts, secretKey));
+    .set('hmac-hash', hmacHash);
+
+  verbose('Building request:');
+  verbose(`- API Key: ${apiKey}`);
+  verbose(`- TS: ${ts}`);
+  verbose(`- CLI Version: ${packageObj.version}`);
+  verbose(`- HMAC: ${hmacHash}`);
+
 
   // If a custom domain has been set, no point in strictly checking SSL certs
   if (process.env.NODEWOOD_DOMAIN) {
@@ -88,7 +95,11 @@ async function installTemplate(path, apiKey, secretKey) {
     secretKey,
   );
 
-  await unzipZip(zipfile, path);
+  verbose('Template zip versions:');
+  verbose(`- Downloaded: ${versions.downloaded}`);
+  verbose(`- Latest: ${versions.latest}`);
+
+  unzipZip(zipfile, path);
 
   return versions;
 }
@@ -113,6 +124,10 @@ async function installWood(path, apiKey, secretKey) {
     secretKey,
   );
 
+  verbose('Wood zip versions:');
+  verbose(`- Downloaded: ${versions.downloaded}`);
+  verbose(`- Latest: ${versions.latest}`);
+
   emptyDirSync(`${path}/wood`);
   await unzipZip(zipfile, `${path}/wood`);
   fixScriptsMode(path);
@@ -131,21 +146,35 @@ async function installWood(path, apiKey, secretKey) {
  * @return { downloaded, latest } The downloaded and latest-possible version of the zip.
  */
 async function downloadZip(from, to, apiKey, secretKey) {
-  const versions = await new Promise((promiseResolve, promisReject) => {
+  const versions = await new Promise((promiseResolve, promiseReject) => {
     const request = buildRequest('GET', from, apiKey, secretKey);
 
-    request.on('error', promisReject);
+    request.on('error', promiseReject);
 
-    request.on('response', (response) => {
+    request.on('response', async (response) => {
       if (response.status === 200) {
+        verbose('Authorized to download zip.');
+
         const writer = createWriteStream(to);
-        writer.write(response.body);
+        await new Promise((writePromiseResolve, writePromisReject) => {
+          writer.on('finish', writePromiseResolve);
+          writer.on('error', writePromisReject);
+
+          writer.write(response.body);
+          writer.end();
+        });
+
+        verbose(`Zip downloaded and saved. ${writer.bytesWritten} bytes written.`);
+
         promiseResolve({
           downloaded: response.headers['downloaded-version'],
           latest: response.headers['latest-version'],
         });
       }
       else {
+        verbose('Not authorized to download zip.');
+        verbose(response);
+
         request.abort();
       }
     });
@@ -162,15 +191,14 @@ async function downloadZip(from, to, apiKey, secretKey) {
  * @param {String} from - The location of the zip file.
  * @param {String} to - Where to unzip to.
  */
-async function unzipZip(from, to) {
-  await new Promise((promiseResolve, promisReject) => {
-    createReadStream(from)
-      .pipe(unzipper.Extract({ path: to }))
-      .on('finish', promiseResolve)
-      .on('error', promisReject);
-  });
+function unzipZip(from, to) {
+  verbose(`Unzipping from '${from}' to '${to}'...`);
+  const zip = new AdmZip(from);
+  zip.extractAllTo(to, true);
 
+  verbose(`Complete.  Removing '${from}'...`);
   removeSync(from);
+  verbose('Removed.');
 }
 
 module.exports = {

@@ -6,7 +6,7 @@ const { first, uniq, compact } = require('lodash');
 const { parse } = require('css');
 const klawSync = require('klaw-sync');
 const { IncrementableProgress } = require('../lib/ui');
-const { log } = require('../lib/log');
+const { log, verbose } = require('../lib/log');
 
 /**
  * @type {Array} Scripts that need to have the execution bit set after unzipping.
@@ -61,6 +61,8 @@ function fixScriptsMode(path) {
  */
 function getTailwindClassList() {
   const cssFile = resolve((process.cwd(), 'node_modules/tailwindcss/dist/tailwind.css'));
+
+  verbose(`Tailwind CSS file: ${cssFile}`);
 
   if (! existsSync(cssFile)) {
     log(chalk.red(`Compiled ${chalk.cyan('tailwind.css')} file does not exist.`));
