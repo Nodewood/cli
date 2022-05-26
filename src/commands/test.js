@@ -4,7 +4,7 @@ const { get } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject, getProjectName } = require('../lib/file');
 const { getDockerCompose, getDockerConfigFolder } = require('../lib/docker');
-const { log } = require('../lib/log');
+const { log, verbose } = require('../lib/log');
 
 class TestCommand extends Command {
   /**
@@ -58,7 +58,11 @@ class TestCommand extends Command {
     // What file we should be testing
     const file = get(args._, 1, '');
 
-    spawn(composeCommand, [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'run', '--rm', 'api', 'bash', '-c', `yarn migrate-test && ${wood} yarn test ${file} ${update}`], { stdio: 'inherit' });
+    const spawnArgs = [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'run', '--rm', 'api', 'bash', '-c', `yarn migrate-test && ${wood} yarn test ${file} ${update}`];
+
+    verbose(`Docker command: ${composeCommand} ${spawnArgs.join(' ')}`);
+
+    spawn(composeCommand, spawnArgs, { stdio: 'inherit' });
   }
 }
 

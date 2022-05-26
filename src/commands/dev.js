@@ -4,7 +4,7 @@ const { get } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject, getProjectName } = require('../lib/file');
 const { getDockerCompose, getDockerConfigFolder } = require('../lib/docker');
-const { log } = require('../lib/log');
+const { log, verbose } = require('../lib/log');
 
 class DevCommand extends Command {
   /**
@@ -51,6 +51,8 @@ class DevCommand extends Command {
     if (get(args, 'd', false)) {
       spawnArgs.push('-d');
     }
+
+    verbose(`Docker command: ${composeCommand} ${spawnArgs.join(' ')}`);
 
     spawn(composeCommand, spawnArgs, { stdio: 'inherit' });
   }

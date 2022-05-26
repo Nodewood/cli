@@ -5,7 +5,7 @@ const { readJsonSync, writeJsonSync } = require('fs-extra');
 const { get, last, sortBy, omit, omitBy, isNil, isEqual, flatMap, invert } = require('lodash');
 const { resolve } = require('path');
 const { IncrementableProgress } = require('./ui');
-const { log } = require('../lib/log');
+const { log, verbose } = require('../lib/log');
 
 const ALLOWED_UPDATE_KEYS = {
   product: [
@@ -225,7 +225,11 @@ async function getStripeProductList() {
     productList = productList.concat(response.data);
   } while (response.has_more);
 
-  return productList.filter((product) => product.active);
+  const activeProducts = productList.filter((product) => product.active);
+
+  verbose(`Got ${productList.length} products from Stripe (${activeProducts.length} active.`);
+
+  return activeProducts;
 }
 
 /**
@@ -245,7 +249,11 @@ async function getStripePriceList() {
     priceList = priceList.concat(response.data);
   } while (response.has_more);
 
-  return priceList.filter((price) => price.active);
+  const activePrices = priceList.filter((price) => price.active);
+
+  verbose(`Got ${priceList.length} prices from Stripe (${activePrices.length} active).`);
+
+  return activePrices;
 }
 
 /**
@@ -265,7 +273,11 @@ async function getStripeTaxList() {
     taxList = taxList.concat(response.data);
   } while (response.has_more);
 
-  return taxList.filter((tax) => tax.active);
+  const activeTaxes = taxList.filter((tax) => tax.active);
+
+  verbose(`Got ${taxList.length} taxes from Stripe (${activeTaxes} active).`);
+
+  return activeTaxes;
 }
 
 /**
@@ -284,6 +296,8 @@ async function getStripeCouponList() {
 
     couponList = couponList.concat(response.data);
   } while (response.has_more);
+
+  verbose(`Got ${couponList.length} coupons from Stripe.`);
 
   return couponList;
 }

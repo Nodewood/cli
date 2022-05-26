@@ -22,7 +22,7 @@ const {
 const { pluralize } = require('../lib/text');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
-const { log } = require('../lib/log');
+const { log, verbose } = require('../lib/log');
 
 const NODEWOOD_PREFIX = 'nodewood-';
 
@@ -251,6 +251,9 @@ class AddCommand extends Command {
     const sourceDir = resolve(process.cwd(), 'wood/templates/feature');
     const targetDir = resolve(process.cwd(), `app/features/${name}`);
 
+    verbose(`Source directory: ${sourceDir}`);
+    verbose(`Target directory: ${targetDir}`);
+
     if (name.substr(0, 9) === NODEWOOD_PREFIX) {
       log(chalk.red(`Feature cannot start with '${chalk.cyan(NODEWOOD_PREFIX)}'.`));
       log('This keeps future Nodewood features from interfering with yours.');
@@ -316,6 +319,9 @@ class AddCommand extends Command {
     const sourcePath = resolve(process.cwd(), 'wood/templates/migration/Migration.js');
     const targetPath = resolve(process.cwd(), `app/migrations/${ts}_${name}.js`);
 
+    verbose(`Migration source path: ${sourcePath}`);
+    verbose(`Migration target path: ${targetPath}`);
+
     const contents = readFileSync(sourcePath, 'utf-8');
     writeFileSync(
       targetPath,
@@ -341,8 +347,14 @@ class AddCommand extends Command {
     const controllerSource = resolve(process.cwd(), 'wood/templates/controller/Controller.js');
     const controllerTarget = resolve(process.cwd(), `app/features/${feature}/api/controllers/${fileNames.pascalPluralName}Controller.js`);
 
+    verbose(`Controller source path: ${controllerSource}`);
+    verbose(`Controller target path: ${controllerTarget}`);
+
     const testSource = resolve(process.cwd(), 'wood/templates/controller/Controller.test.js');
     const testTarget = resolve(process.cwd(), `app/features/${feature}/api/controllers/__tests__/${fileNames.pascalPluralName}Controller.test.js`);
+
+    verbose(`Controller test source path: ${testSource}`);
+    verbose(`Controller test target path: ${testTarget}`);
 
     // Don't accidentally overwrite these files
     if (! overwrite) {
@@ -398,6 +410,9 @@ class AddCommand extends Command {
       fileNamePlural: fileNames.pascalPluralName,
     }));
 
+    verbose(`${upperFirst(type)} source path: ${source}`);
+    verbose(`${upperFirst(type)} target path: ${target}`);
+
     // Don't accidentally overwrite the file
     if (! overwrite && existsSync(target)) {
       log(chalk.red(`The ${type} you are trying to create already exists.`));
@@ -426,6 +441,8 @@ class AddCommand extends Command {
     const fileName = resolve(process.cwd(), template(fileTemplate)({
       fileName: fileNames.pascalName,
     }));
+
+    verbose(`Deleting file: ${fileName}`);
 
     removeSync(fileName);
   }
@@ -488,6 +505,9 @@ class AddCommand extends Command {
 
     const source = resolve(process.cwd(), 'wood/templates/fragments/route.js');
     const target = resolve(process.cwd(), `app/features/${feature}/ui/init.js`);
+
+    verbose(`Route init source: ${source}`);
+    verbose(`Route init target: ${target}`);
 
     const routeFragment = this.templateString(
       readFileSync(source, 'utf-8'),
@@ -627,6 +647,9 @@ class AddCommand extends Command {
 
     const source = resolve(process.cwd(), 'wood/templates/fragments/store.js');
     const target = resolve(process.cwd(), `app/features/${feature}/ui/init.js`);
+
+    verbose(`Store init source: ${source}`);
+    verbose(`Store init target: ${target}`);
 
     const storeFragment = this.templateString(
       readFileSync(source, 'utf-8'),

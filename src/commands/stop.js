@@ -3,7 +3,7 @@ const spawn = require('cross-spawn');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject, getProjectName } = require('../lib/file');
 const { getDockerCompose, getDockerConfigFolder } = require('../lib/docker');
-const { log } = require('../lib/log');
+const { log, verbose } = require('../lib/log');
 
 class StopCommand extends Command {
   /**
@@ -41,8 +41,11 @@ class StopCommand extends Command {
     const { composeCommand, composeArgs } = getDockerCompose();
     const dockerFolder = getDockerConfigFolder();
     const projectName = getProjectName();
+    const spawnArgs = [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'stop'];
 
-    spawn(composeCommand, [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'stop'], { stdio: 'inherit' });
+    verbose(`Docker command: ${composeCommand} ${spawnArgs.join(' ')}`);
+
+    spawn(composeCommand, spawnArgs, { stdio: 'inherit' });
   }
 }
 
