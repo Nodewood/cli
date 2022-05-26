@@ -17,7 +17,7 @@ const {
   URL_BASE,
 } = require('../lib/net');
 const { updateAppDependencies } = require('../lib/package');
-const { log } = require('../lib/log');
+const { log, verbose } = require('../lib/log');
 
 class UpCommand extends Command {
   /**
@@ -53,6 +53,10 @@ class UpCommand extends Command {
     }
 
     const { apiKey, secretKey } = require(resolve(process.cwd(), '.nodewood.js')); // eslint-disable-line global-require
+
+    verbose(`Got API key:    '${apiKey.substr(0, 3)}...'`);
+    verbose(`Got Secret key: '${secretKey.substr(0, 3)}...'`);
+
     const { version: currentWoodVersion } = readJsonSync(resolve(process.cwd(), 'wood/package.json'));
     const { releases, latestUserVersion } = await getReleaseInfo(apiKey, secretKey);
     const latest = head(releases);

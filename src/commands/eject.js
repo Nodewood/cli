@@ -4,7 +4,7 @@ const { resolve, extname } = require('path');
 const { pathExistsSync, copySync } = require('fs-extra');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
-const { log } = require('../lib/log');
+const { log, verbose } = require('../lib/log');
 
 const checkExtensions = ['js', 'vue', 'css'];
 
@@ -53,6 +53,8 @@ class EjectCommand extends Command {
     const overwrite = get(args, 'overwrite', false);
     const woodPath = this.getWoodPath(file);
     const appPath = this.getAppPath(woodPath, overwrite);
+
+    verbose(`Ejecting from '${woodPath}' to '${appPath}'...`);
 
     copySync(woodPath, appPath, { overwrite, errorOnExist: true });
 

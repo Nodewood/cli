@@ -67,7 +67,6 @@ class NewCommand extends Command {
     log(chalk.yellow('\nOptions:'));
     log(`  ${chalk.cyan('--overwrite')}    # Overwrite existing files`);
     log(`  ${chalk.cyan('--skip-check')}   # Skip environment check`);
-    log(`  ${chalk.cyan('-v')}             # Verbose output`);
   }
 
   /**
