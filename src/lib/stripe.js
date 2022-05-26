@@ -227,7 +227,7 @@ async function getStripeProductList() {
 
   const activeProducts = productList.filter((product) => product.active);
 
-  verbose(`Got ${productList.length} products from Stripe (${activeProducts.length} active.`);
+  verbose(`Got ${productList.length} products from Stripe (${activeProducts.length} active).`);
 
   return activeProducts;
 }
@@ -275,7 +275,7 @@ async function getStripeTaxList() {
 
   const activeTaxes = taxList.filter((tax) => tax.active);
 
-  verbose(`Got ${taxList.length} taxes from Stripe (${activeTaxes} active).`);
+  verbose(`Got ${taxList.length} taxes from Stripe (${activeTaxes.length} active).`);
 
   return activeTaxes;
 }
