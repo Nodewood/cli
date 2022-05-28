@@ -4,6 +4,10 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 [Documentation can be found on the Nodewood website](https://nodewood.com/docs/getting-started/cli/)
 
+## Unreleased
+
+- Fixes `eject` so file retains correct case even if incorrect case is used in command args.
+
 ## Releases
 
 ### 0.17.1

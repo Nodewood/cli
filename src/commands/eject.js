@@ -2,6 +2,7 @@ const chalk = require('chalk');
 const { get } = require('lodash');
 const { resolve, extname } = require('path');
 const { pathExistsSync, copySync } = require('fs-extra');
+const { trueCasePathSync } = require('true-case-path');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject } = require('../lib/file');
 const { log, verbose } = require('../lib/log');
@@ -74,12 +75,12 @@ class EjectCommand extends Command {
     const path = resolve(process.cwd(), `wood/${file.replace('#', '')}`);
 
     if (extname(file) && pathExistsSync(path)) {
-      return path;
+      return trueCasePathSync(path);
     }
 
     for (const ext of checkExtensions) { // eslint-disable-line no-restricted-syntax
       if (pathExistsSync(`${path}.${ext}`)) {
-        return `${path}.${ext}`;
+        return trueCasePathSync(`${path}.${ext}`);
       }
     }
 
