@@ -29,7 +29,20 @@ function getDockerConfigFolder() {
   return 'wood/docker';
 }
 
+/**
+ * Gets the name of the image to use to run commands.  Defaults to `run`, but can be configured in
+ * the `.nodewood.js` file.
+ *
+ * @return {String}
+ */
+function getRunImage() {
+  const config = require(resolve(process.cwd(), '.nodewood.js')); // eslint-disable-line global-require
+
+  return get(config, 'runImage', 'run');
+}
+
 module.exports = {
   getDockerCompose,
   getDockerConfigFolder,
+  getRunImage,
 };

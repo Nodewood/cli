@@ -43,9 +43,7 @@ class DevCommand extends Command {
     }
 
     const { composeCommand, composeArgs } = getDockerCompose();
-    const dockerFolder = getDockerConfigFolder();
-    const projectName = getProjectName();
-    const spawnArgs = [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'up'];
+    const spawnArgs = [...composeArgs, '-p', getProjectName(), '-f', `${getDockerConfigFolder()}/docker-compose.yml`, 'up'];
 
     // Detached mode
     if (get(args, 'd', false)) {

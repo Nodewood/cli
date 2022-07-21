@@ -39,9 +39,7 @@ class StopCommand extends Command {
     }
 
     const { composeCommand, composeArgs } = getDockerCompose();
-    const dockerFolder = getDockerConfigFolder();
-    const projectName = getProjectName();
-    const spawnArgs = [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'stop'];
+    const spawnArgs = [...composeArgs, '-p', getProjectName(), '-f', `${getDockerConfigFolder()}/docker-compose.yml`, 'stop'];
 
     verbose(`Docker command: ${composeCommand} ${spawnArgs.join(' ')}`);
 

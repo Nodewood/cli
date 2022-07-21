@@ -2,7 +2,7 @@ const chalk = require('chalk');
 const spawn = require('cross-spawn');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject, getProjectName } = require('../lib/file');
-const { getDockerCompose, getDockerConfigFolder } = require('../lib/docker');
+const { getDockerCompose, getDockerConfigFolder, getRunImage } = require('../lib/docker');
 const { log, verbose } = require('../lib/log');
 
 class ScriptCommand extends Command {
@@ -48,9 +48,7 @@ class ScriptCommand extends Command {
     const argString = args._.slice(1).concat(flagArgs).join(' ');
 
     const { composeCommand, composeArgs } = getDockerCompose();
-    const dockerFolder = getDockerConfigFolder();
-    const projectName = getProjectName();
-    const spawnArgs = [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'run', '--rm', 'api', '/bin/bash', '-c', `node app/cli/script.js ${argString}`];
+    const spawnArgs = [...composeArgs, '-p', getProjectName(), '-f', `${getDockerConfigFolder()}/docker-compose.yml`, 'run', '-e', 'HOME=/root', '--rm', getRunImage(), '/bin/bash', '-c', `node app/cli/script.js ${argString}`];
 
     verbose(`Docker command: ${composeCommand} ${spawnArgs.join(' ')}`);
 

@@ -3,7 +3,7 @@ const spawn = require('cross-spawn');
 const { get } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject, getProjectName } = require('../lib/file');
-const { getDockerCompose, getDockerConfigFolder } = require('../lib/docker');
+const { getDockerCompose, getDockerConfigFolder, getRunImage } = require('../lib/docker');
 const { log, verbose } = require('../lib/log');
 
 class TestCommand extends Command {
@@ -46,8 +46,6 @@ class TestCommand extends Command {
     }
 
     const { composeCommand, composeArgs } = getDockerCompose();
-    const dockerFolder = getDockerConfigFolder();
-    const projectName = getProjectName();
 
     // Hidden flag, if we should test wood folder
     const wood = get(args, 'wood', false) ? 'cd wood && ' : '';
@@ -58,7 +56,7 @@ class TestCommand extends Command {
     // What file we should be testing
     const file = get(args._, 1, '');
 
-    const spawnArgs = [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'run', '--rm', 'api', 'bash', '-c', `yarn migrate-test && ${wood} yarn test ${file} ${update}`];
+    const spawnArgs = [...composeArgs, '-p', getProjectName(), '-f', `${getDockerConfigFolder()}/docker-compose.yml`, 'run', '--rm', getRunImage(), 'bash', '-c', `yarn migrate-test && ${wood} yarn test ${file} ${update}`];
 
     verbose(`Docker command: ${composeCommand} ${spawnArgs.join(' ')}`);
 

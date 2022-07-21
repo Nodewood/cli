@@ -3,7 +3,7 @@ const spawn = require('cross-spawn');
 const { get } = require('lodash');
 const { Command } = require('../lib/Command');
 const { isNodewoodProject, getProjectName } = require('../lib/file');
-const { getDockerCompose, getDockerConfigFolder } = require('../lib/docker');
+const { getDockerCompose, getDockerConfigFolder, getRunImage } = require('../lib/docker');
 const { log, verbose } = require('../lib/log');
 
 class RollbackCommand extends Command {
@@ -43,11 +43,8 @@ class RollbackCommand extends Command {
     }
 
     const { composeCommand, composeArgs } = getDockerCompose();
-    const dockerFolder = getDockerConfigFolder();
-    const projectName = getProjectName();
-
     const env = get(args, 'test', false) ? '-test' : '';
-    const spawnArgs = [...composeArgs, '-p', projectName, '-f', `${dockerFolder}/docker-compose.yml`, 'run', '--rm', 'api', '/bin/bash', '-c', `yarn rollback${env}`];
+    const spawnArgs = [...composeArgs, '-p', getProjectName(), '-f', `${getDockerConfigFolder()}/docker-compose.yml`, 'run', '--rm', getRunImage(), '/bin/bash', '-c', `yarn rollback${env}`];
 
     verbose(`Docker command: ${composeCommand} ${spawnArgs.join(' ')}`);
 
