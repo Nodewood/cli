@@ -6,6 +6,12 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
+### 0.18.0
+
+- Changes from using `api` as the default image to run Docker commands to new `run` image.
+
+> The `run` image is part of the 1.0 release of Nodewood.  If you have not or cannot update Nodewood to this release, you can modify your `.nodewood.js` project config file and add `runImage: 'api',` to switch it back to using the `api` image to run Docker commands.
+
 ### 0.17.2
 
 - Fixes `eject` so file retains correct case even if incorrect case is used in command args.
