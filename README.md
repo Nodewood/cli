@@ -6,7 +6,7 @@ Command-line interface for installing and managing [Nodewood](https://nodewood.c
 
 ## Releases
 
-### 0.18.0
+### 1.0.0
 
 - Changes from using `api` as the default image to run Docker commands to new `run` image.
 
